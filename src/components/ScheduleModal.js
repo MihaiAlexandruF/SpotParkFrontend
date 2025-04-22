@@ -1,9 +1,7 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView, Platform, Switch } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
-import DateTimePicker from "@react-native-community/datetimepicker"
+import { useState, useEffect } from "react";
+import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView, Platform, Switch } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function ScheduleModal({ visible, spot, onClose, onSave }) {
   const [scheduleType, setScheduleType] = useState("normal")

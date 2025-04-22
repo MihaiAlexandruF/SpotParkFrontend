@@ -1,9 +1,7 @@
-"use client"
-
-import { useState } from "react"
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
-import ScheduleModal from "./ScheduleModal"
+import { useState } from "react";
+import { View, Text, StyleSheet, Switch, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import ScheduleModal from "./ScheduleModal";
 
 const parkingSpots = [
   { id: 1, name: "Spot A1", active: true, earnings: 150, scheduleType: "normal" },

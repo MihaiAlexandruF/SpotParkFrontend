@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native"
+import { View, Text, StyleSheet } from "react-native";
 
 const earningsData = [
   { name: "Spot A1", total: 150 },

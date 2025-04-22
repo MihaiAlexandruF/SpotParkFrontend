@@ -1,7 +1,7 @@
-import { ScrollView, View, Text, StyleSheet } from "react-native"
-import ParkingSpotList from "../components/ParkingSpotList"
-import EarningsSummary from "../components/EarningsSummary"
-import ActiveClientsList from "../components/ActiveClientsList"
+import { ScrollView, View, Text, StyleSheet } from "react-native";
+import ParkingSpotList from "../components/ParkingSpotList";
+import EarningsSummary from "../components/EarningsSummary";
+import ActiveClientsList from "../components/ActiveClientsList";
 
 export default function OwnerDashboard() {
   return (

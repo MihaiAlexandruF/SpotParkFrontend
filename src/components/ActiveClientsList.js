@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList } from "react-native"
+import { View, Text, StyleSheet, FlatList } from "react-native";
 
 const activeClients = [
   { id: "1", licensePlate: "ABC123", parkingSpot: "Spot A1", startTime: "2023-04-10 14:30" },
