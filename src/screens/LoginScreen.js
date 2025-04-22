@@ -34,12 +34,16 @@ export default function LoginScreen({ navigation }) {
   const handleLogin = async (values) => {
     try {
       setLoading(true)
+      console.log("Sending login request with:", values);
+
       const response = await api.post("/auth/login", {
         usernameOrEmail: values.usernameOrEmail,
         password: values.password,
       })
 
-      // Assuming login function exists in AuthContext
+      console.log("Răspuns de la server:", response);
+
+
       setAuthenticated(true)
       navigation.navigate("Dashboard")
     } catch (error) {

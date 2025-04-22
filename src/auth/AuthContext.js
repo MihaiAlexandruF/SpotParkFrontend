@@ -15,14 +15,12 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = await SecureStore.getItemAsync('auth_token');
         if (token) {
-          const { data } = await api.get('/auth/validate');
+          await api.get('/auth/validate');
           setAuthenticated(true);
-          setUser(data); 
         }
       } catch (error) {
         await SecureStore.deleteItemAsync('auth_token');
         setAuthenticated(false);
-        setUser(null);
       } finally {
         setLoading(false);
       }
