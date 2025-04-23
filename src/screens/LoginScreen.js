@@ -36,15 +36,17 @@ export default function LoginScreen({ navigation }) {
       setLoading(true)
       console.log("Sending login request with:", values);
 
+      console.log("Trimit cerere login...");
+
       const response = await api.post("/auth/login", {
         usernameOrEmail: values.usernameOrEmail,
         password: values.password,
       })
 
-      console.log("Răspuns de la server:", response);
+      console.log("Răspuns de la server:", response.data);
 
-
-      setAuthenticated(true)
+      await login(response.data);
+      
       navigation.navigate("Dashboard")
     } catch (error) {
       let errorMessage = "Authentication failed"

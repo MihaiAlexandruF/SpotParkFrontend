@@ -28,10 +28,14 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (token, userData = null) => {
+  const login = async (responseData) => {  
+    const { token, user } = responseData;
     await SecureStore.setItemAsync('auth_token', token);
     setAuthenticated(true);
-    if (userData) setUser(userData);
+    setUser(user);  
+
+    console.log('Token saved:', token);
+    console.log('User data set:', user);
   };
 
   const handleLogout = async () => {
