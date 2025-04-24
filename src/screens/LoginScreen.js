@@ -18,8 +18,10 @@ import {
 import * as yup from "yup"
 import { Formik } from "formik"
 import api from "../services/api"
-import { useAuth } from "../auth/AuthContext"
+import { useAuth } from '../auth/AuthContext'; 
+
 import { Ionicons } from "@expo/vector-icons"
+
 
 const loginSchema = yup.object().shape({
   usernameOrEmail: yup.string().required("Email or username is required"),
@@ -30,6 +32,8 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false)
   const { setAuthenticated } = useAuth()
   const [secureTextEntry, setSecureTextEntry] = useState(true)
+  const { login } = useAuth();
+
 
   const handleLogin = async (values) => {
     try {
@@ -47,13 +51,17 @@ export default function LoginScreen({ navigation }) {
 
       await login(response.data);
       
-      navigation.navigate("Dashboard")
     } catch (error) {
-      let errorMessage = "Authentication failed"
-      if (error.response?.data) {
-        errorMessage = error.response.data
+      console.log("EROARE LA LOGIN:", error);
+      let errorMessage = "Authentication failed";
+    
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-      Alert.alert("Error", errorMessage)
+    
+      Alert.alert("Eroare", errorMessage);
     } finally {
       setLoading(false)
     }

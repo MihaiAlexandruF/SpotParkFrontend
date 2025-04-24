@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import api from '../services/api';
+import isTokenExpired from '../services/isTokenExpired';
 
 export const AuthContext = createContext();
 
@@ -13,27 +14,40 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = await SecureStore.getItemAsync('auth_token');
-        if (token) {
-          await api.get('/auth/validate');
+        const token = await SecureStore.getItemAsync("auth_token");
+    
+        if (token && !isTokenExpired(token)) {
+          const { data } = await api.get("/auth/validate");
           setAuthenticated(true);
+          setUser(data);
+        } else {
+          await SecureStore.deleteItemAsync("auth_token");
+          setAuthenticated(false);
         }
       } catch (error) {
-        await SecureStore.deleteItemAsync('auth_token');
+        await SecureStore.deleteItemAsync("auth_token");
         setAuthenticated(false);
       } finally {
         setLoading(false);
       }
     };
+    
     checkAuth();
   }, []);
 
-  const login = async (responseData) => {  
-    const { token, user } = responseData;
+  const login = async (responseData) => {
+    const token = responseData?.token;
+    const user = responseData?.user;
+  
+    if (!token || !user) {
+      console.error("Token sau user lipsă!", responseData);
+      throw new Error("Token sau user lipsă!");
+    }
+  
     await SecureStore.setItemAsync('auth_token', token);
     setAuthenticated(true);
-    setUser(user);  
-
+    setUser(user);
+  
     console.log('Token saved:', token);
     console.log('User data set:', user);
   };
@@ -49,10 +63,11 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ authenticated, user, login, handleLogout }}>
+    <AuthContext.Provider value={{ authenticated, user, login, handleLogout, loading }}>
       {children}
     </AuthContext.Provider>
   );
+  
 };
 
 export const useAuth = () => useContext(AuthContext);
