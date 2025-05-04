@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
     }
   
     await SecureStore.setItemAsync('auth_token', token);
+    console.log("Saved token:", token);
     setAuthenticated(true);
     setUser(user);
   

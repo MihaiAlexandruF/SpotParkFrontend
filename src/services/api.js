@@ -3,7 +3,7 @@ import { getToken, removeToken } from './authStorage';
 import { Alert } from 'react-native';
 
 const api = axios.create({
-  baseURL: 'http://0.0.0.0:5000/api', 
+  baseURL: 'https://5eca-62-121-99-216.ngrok-free.app/api', 
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -13,6 +13,8 @@ const api = axios.create({
 
 api.interceptors.request.use(async (config) => {
   const token = await getToken();
+  console.log("Token from SecureStore:", token);
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

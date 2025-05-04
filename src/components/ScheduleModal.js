@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
-import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView, Platform, Switch } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
+"use client"
+
+import { useState, useEffect } from "react"
+import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView, Platform, Switch } from "react-native"
+import { Ionicons } from "@expo/vector-icons"
+import DateTimePicker from "@react-native-community/datetimepicker"
+import { saveAvailability } from "../services/parkingService"
 
 export default function ScheduleModal({ visible, spot, onClose, onSave }) {
   const [scheduleType, setScheduleType] = useState("normal")
@@ -37,18 +40,44 @@ export default function ScheduleModal({ visible, spot, onClose, onSave }) {
     }
   }, [spot])
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!spot) return
+
     const scheduleData = {
-      scheduleType,
+      availabilityType: scheduleType,
+      dailyOpenTime: null,
+      dailyCloseTime: null,
+      weeklySchedules: null,
     }
 
     if (scheduleType === "daily") {
-      scheduleData.dailyHours = dailyHours
+      scheduleData.dailyOpenTime = dailyHours.start
+      scheduleData.dailyCloseTime = dailyHours.end
     } else if (scheduleType === "weekly") {
-      scheduleData.weeklySchedule = weeklySchedule
+      scheduleData.weeklySchedules = Object.entries(weeklySchedule)
+        .filter(([day, daySchedule]) => daySchedule.active)
+        .map(([day, daySchedule]) => ({
+          dayOfWeek: day.charAt(0).toUpperCase() + day.slice(1),
+          openTime: daySchedule.start,
+          closeTime: daySchedule.end,
+        }))
     }
 
-    onSave(scheduleData)
+    try {
+      await saveAvailability(spot.id, scheduleData)
+
+      // Update the local state to reflect the changes
+      const updatedSpot = {
+        ...spot,
+        scheduleType: scheduleType,
+        dailyHours: scheduleType === "daily" ? dailyHours : spot.dailyHours,
+        weeklySchedule: scheduleType === "weekly" ? weeklySchedule : spot.weeklySchedule,
+      }
+
+      onSave(updatedSpot)
+    } catch (error) {
+      console.error("❌ Eroare la salvarea programului:", error)
+    }
   }
 
   const updateWeeklyDay = (day, field, value) => {
@@ -484,4 +513,3 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f0f0",
   },
 })
-
