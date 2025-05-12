@@ -3,7 +3,7 @@ import { getToken, removeToken } from './authStorage';
 import { Alert } from 'react-native';
 
 const api = axios.create({
-  baseURL: 'https://5eca-62-121-99-216.ngrok-free.app/api', 
+  baseURL: 'https://b593-193-226-62-216.ngrok-free.app/api', 
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

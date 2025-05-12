@@ -21,21 +21,82 @@ export const saveAvailability = async (parkingLotId, scheduleData) => {
 }
 
 // Update the getMyParkingSpots function to properly handle the API response
+
 export const getMyParkingSpots = async () => {
   try {
-    const { data } = await api.get("/parking/my-spots")
+    const { data } = await api.get("/parking/my-spots");
 
     if (!Array.isArray(data)) {
-      console.error("❌ Răspunsul API nu este un array:", data)
-      return []
+      console.error("❌ Răspunsul API nu este un array:", data);
+      return [];
     }
 
-    return data
+    const spotsMapped = data.map((spot) => ({
+      id: spot.parkingLotId,
+      name: spot.description || "Parcare fără nume",
+      address: spot.address || "",
+      active: spot.isActive === undefined ? true : spot.isActive,
+      pricePerHour: spot.pricePerHour || 0,
+      latitude: spot.latitude,
+      longitude: spot.longitude,
+      imageUrls: spot.imageUrls || [],
+      earnings: spot.earnings || 0,
+
+      scheduleType:
+        spot.availabilitySchedules && spot.availabilitySchedules.length > 0
+          ? spot.availabilitySchedules[0].availabilityType
+          : "normal",
+
+      dailyHours:
+        spot.availabilitySchedules &&
+        spot.availabilitySchedules.length > 0 &&
+        spot.availabilitySchedules[0].availabilityType === "daily"
+          ? {
+              start: spot.availabilitySchedules[0].openTime || "08:00",
+              end: spot.availabilitySchedules[0].closeTime || "20:00",
+            }
+          : { start: "08:00", end: "20:00" },
+
+      weeklySchedule:
+        spot.availabilitySchedules && spot.availabilitySchedules.length > 0
+          ? transformWeeklySchedules(spot.availabilitySchedules)
+          : null,
+    }));
+
+    return spotsMapped;
   } catch (error) {
-    console.error("❌ Eroare la încărcarea parcărilor utilizatorului:", error)
-    return []
+    console.error("❌ Eroare la încărcarea parcărilor utilizatorului:", error);
+    return [];
   }
-}
+};
+
+// ✅ Transformare robustă pentru orar săptămânal
+const transformWeeklySchedules = (weeklySchedules) => {
+  const defaultSchedule = {
+    monday: { active: false, start: "09:00", end: "17:00" },
+    tuesday: { active: false, start: "09:00", end: "17:00" },
+    wednesday: { active: false, start: "09:00", end: "17:00" },
+    thursday: { active: false, start: "09:00", end: "17:00" },
+    friday: { active: false, start: "09:00", end: "17:00" },
+    saturday: { active: false, start: "10:00", end: "16:00" },
+    sunday: { active: false, start: "10:00", end: "16:00" },
+  };
+
+  weeklySchedules.forEach((schedule) => {
+    const day = schedule.dayOfWeek?.toLowerCase?.();
+    if (day && defaultSchedule[day]) {
+      defaultSchedule[day] = {
+        active: true,
+        start: schedule.openTime || "09:00",
+        end: schedule.closeTime || "17:00",
+      };
+    }
+  });
+
+  return defaultSchedule;
+};
+
+
 
 export const getParkingSpots = async () => {
   try {

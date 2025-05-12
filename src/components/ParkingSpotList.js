@@ -12,73 +12,13 @@ export default function ParkingSpotList() {
   const [modalVisible, setModalVisible] = useState(false)
 
   useEffect(() => {
-    const fetchSpots = async () => {
-      try {
-        const data = await getMyParkingSpots()
-
-        const spotsMapped = data.map((spot) => ({
-          id: spot.parkingLotId,
-          name: spot.description || "Parcare fără nume",
-          address: spot.address || "",
-          active: spot.isActive === undefined ? true : spot.isActive,
-          scheduleType:
-            spot.availabilitySchedules && spot.availabilitySchedules.length > 0
-              ? spot.availabilitySchedules[0].availabilityType
-              : "normal",
-          earnings: spot.totalEarnings || 0,
-          dailyHours:
-            spot.availabilitySchedules &&
-            spot.availabilitySchedules.length > 0 &&
-            spot.availabilitySchedules[0].availabilityType === "daily"
-              ? {
-                  start: spot.availabilitySchedules[0].dailyOpenTime || "08:00",
-                  end: spot.availabilitySchedules[0].dailyCloseTime || "20:00",
-                }
-              : { start: "08:00", end: "20:00" },
-          weeklySchedule:
-            spot.availabilitySchedules && spot.availabilitySchedules[0].weeklySchedules
-              ? transformWeeklySchedules(spot.availabilitySchedules[0].weeklySchedules)
-              : null,
-        }))
-
-        setSpots(spotsMapped)
-      } catch (error) {
-        console.error("❌ Eroare la încărcarea locurilor de parcare:", error)
-        setSpots([])
-      }
-    }
-
-    // Helper function to transform weekly schedules from API format to component format
-    const transformWeeklySchedules = (weeklySchedules) => {
-      if (!weeklySchedules || !Array.isArray(weeklySchedules)) return null
-
-      const defaultSchedule = {
-        monday: { active: false, start: "09:00", end: "17:00" },
-        tuesday: { active: false, start: "09:00", end: "17:00" },
-        wednesday: { active: false, start: "09:00", end: "17:00" },
-        thursday: { active: false, start: "09:00", end: "17:00" },
-        friday: { active: false, start: "09:00", end: "17:00" },
-        saturday: { active: false, start: "10:00", end: "16:00" },
-        sunday: { active: false, start: "10:00", end: "16:00" },
-      }
-
-      weeklySchedules.forEach((schedule) => {
-        const day = schedule.dayOfWeek.toLowerCase()
-        if (defaultSchedule[day]) {
-          defaultSchedule[day] = {
-            active: true,
-            start: schedule.openTime || "09:00",
-            end: schedule.closeTime || "17:00",
-          }
-        }
-      })
-
-      return defaultSchedule
-    }
-
-    fetchSpots()
-  }, [])
-
+    const load = async () => {
+      const spots = await getMyParkingSpots();
+      setSpots(spots);
+    };
+    load();
+  }, []);
+  
   const toggleSpot = (id) => {
     const updatedSpots = spots.map((s) => (s.id === id ? { ...s, active: !s.active } : s))
     setSpots(updatedSpots)

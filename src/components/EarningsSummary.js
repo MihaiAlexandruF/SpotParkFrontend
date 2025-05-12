@@ -1,54 +1,59 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native"
-import api from "../services/api"
+import { useEffect, useState } from "react";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import api from "../services/api";
 
 export default function EarningsSummary() {
-  const [earnings, setEarnings] = useState([])
-  const [total, setTotal] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [earnings, setEarnings] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchEarnings = async () => {
       try {
-        const [perParkingRes, totalRes] = await Promise.all([
+        const [perParkingRes, totalRes, walletRes] = await Promise.all([
           api.get("/earnings/per-parking"),
           api.get("/earnings/total"),
-        ])
+          api.get("/wallet"),
+        ]);
 
-        // Make sure we're handling the actual API response structure
-        setEarnings(Array.isArray(perParkingRes.data) ? perParkingRes.data : [])
-        setTotal(totalRes.data.total || 0)
+        setEarnings(Array.isArray(perParkingRes.data) ? perParkingRes.data : []);
+        setTotal(totalRes.data.total || 0);
+        setWalletBalance(walletRes.data.balance || 0);
       } catch (error) {
-        console.error("❌ Eroare la fetch earnings:", error)
-        // Set default values in case of error
-        setEarnings([])
-        setTotal(0)
+        console.error("❌ Eroare la fetch earnings:", error);
+        setEarnings([]);
+        setTotal(0);
+        setWalletBalance(0);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchEarnings()
-  }, [])
+    };
+
+    fetchEarnings();
+  }, []);
 
   if (loading) {
-    return <ActivityIndicator size="small" color="#4CAF50" />
+    return <ActivityIndicator size="small" color="#4CAF50" />;
   }
 
-  // Handle case when there are no earnings
   if (earnings.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>Nu există date despre venituri</Text>
       </View>
-    )
+    );
   }
 
-  const maxTotal = Math.max(...earnings.map((e) => e.total || 0), 1)
+  const maxTotal = Math.max(...earnings.map((e) => e.total || 0), 1);
 
   return (
     <View>
+      <View style={styles.totalContainer}>
+        <Text style={styles.totalLabel}>Sold portofel</Text>
+        <Text style={styles.totalValue}>{walletBalance} RON</Text>
+      </View>
+
       <View style={styles.totalContainer}>
         <Text style={styles.totalLabel}>Total venituri</Text>
         <Text style={styles.totalValue}>{total} RON</Text>
@@ -74,8 +79,9 @@ export default function EarningsSummary() {
         </View>
       ))}
     </View>
-  )
+  );
 }
+
 
 const styles = StyleSheet.create({
   totalContainer: {
