@@ -15,11 +15,11 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
       try {
         const token = await SecureStore.getItemAsync("auth_token");
-    
+
         if (token && !isTokenExpired(token)) {
           const { data } = await api.get("/auth/validate");
           setAuthenticated(true);
-          setUser(data);
+          setUser(data); // User cu balance și plates direct din validate
         } else {
           await SecureStore.deleteItemAsync("auth_token");
           setAuthenticated(false);
@@ -31,26 +31,36 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
-    
+
     checkAuth();
   }, []);
 
   const login = async (responseData) => {
     const token = responseData?.token;
-    const user = responseData?.user;
-  
-    if (!token || !user) {
-      console.error("Token sau user lipsă!", responseData);
-      throw new Error("Token sau user lipsă!");
+    if (!token) {
+      console.error("Token lipsă!", responseData);
+      throw new Error("Token lipsă!");
     }
-  
+
     await SecureStore.setItemAsync('auth_token', token);
-    console.log("Saved token:", token);
-    setAuthenticated(true);
-    setUser(user);
-  
-    console.log('Token saved:', token);
-    console.log('User data set:', user);
+
+    try {
+      const { data } = await api.get("/auth/validate");
+      setAuthenticated(true);
+      setUser(data);
+    } catch (error) {
+      console.error("Eroare la validarea utilizatorului după login:", error);
+      throw error;
+    }
+  };
+
+  const refreshUserData = async () => {
+    try {
+      const { data } = await api.get("/auth/validate");
+      setUser(data);
+    } catch (error) {
+      console.error("Eroare la reîmprospătarea datelor utilizatorului:", error);
+    }
   };
 
   const handleLogout = async () => {
@@ -64,11 +74,10 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ authenticated, user, login, handleLogout, loading }}>
+    <AuthContext.Provider value={{ authenticated, user, login, handleLogout, refreshUserData }}>
       {children}
     </AuthContext.Provider>
   );
-  
 };
 
 export const useAuth = () => useContext(AuthContext);

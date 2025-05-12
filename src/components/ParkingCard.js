@@ -1,58 +1,39 @@
-"use client"
+import React, { useRef, useEffect } from "react";
+import { View, Text, TouchableOpacity, Animated,StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import ImageCarousel from "./ImageCarousel";
 
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
-import ImageCarousel from "./ImageCarousel"
-import { BlurView } from "expo-blur"
-import { useRef, useEffect } from "react"
+export default function ParkingCard({ spot, onClose, onOpenReservationSheet }) { 
 
-export default function ParkingCard({ spot, onClose, onReserve }) {
-  // Animation values
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const slideAnim = useRef(new Animated.Value(50)).current
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }, [])
+      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  const handleReservePress = () => {
+    onOpenReservationSheet(spot);
+  };
 
   return (
-    <Animated.View
-      style={[
-        styles.cardWrapper,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        },
-      ]}
-    >
+    <Animated.View style={[styles.cardWrapper, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
       <View style={styles.card}>
-        {/* Image Carousel */}
         {spot.images && <ImageCarousel images={spot.images} />}
 
-        {/* Close Button */}
         <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.8}>
           <BlurView intensity={30} tint="light" style={styles.blurButton}>
-            <Ionicons name="close" size={20} color="#000" />
+            <Ionicons name="close" size={20} color="#ff0000" />
           </BlurView>
         </TouchableOpacity>
 
-        {/* Content */}
         <View style={styles.content}>
-          {/* Title */}
           <Text style={styles.title}>{spot.name}</Text>
 
-          {/* Info Items */}
           <View style={styles.infoContainer}>
             <View style={styles.infoItem}>
               <Ionicons name="location-outline" size={18} color="#000" style={styles.icon} />
@@ -65,37 +46,40 @@ export default function ParkingCard({ spot, onClose, onReserve }) {
             </View>
           </View>
 
-          {/* Features */}
           <View style={styles.features}>
-            <View style={styles.feature}>
-              <Ionicons name="shield-checkmark-outline" size={16} color="#4CAF50" />
-              <Text style={styles.featureText}>Securizat</Text>
-            </View>
-            <View style={styles.feature}>
-              <Ionicons name="flash-outline" size={16} color="#4CAF50" />
-              <Text style={styles.featureText}>Rapid</Text>
-            </View>
-            <View style={styles.feature}>
-              <Ionicons name="star-outline" size={16} color="#4CAF50" />
-              <Text style={styles.featureText}>4.8</Text>
-            </View>
+            <Feature icon="shield-checkmark-outline" label="Securizat" />
+            <Feature icon="flash-outline" label="Rapid" />
+            <Feature icon="star-outline" label="4.8" />
           </View>
 
-          {/* Reserve Button */}
-          <TouchableOpacity style={styles.reserveButton} onPress={onReserve} activeOpacity={0.9}>
-            <Text style={styles.reserveText}>Rezervă acum</Text>
+          <TouchableOpacity
+            style={styles.reserveButton}
+            onPress={handleReservePress}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.reserveText}>Continuă rezervarea</Text>
             <Ionicons name="arrow-forward" size={18} color="#000" style={styles.reserveIcon} />
           </TouchableOpacity>
         </View>
       </View>
     </Animated.View>
-  )
+  );
 }
+
+function Feature({ icon, label }) {
+  return (
+    <View style={styles.feature}>
+      <Ionicons name={icon} size={16} color="#4CAF50" />
+      <Text style={styles.featureText}>{label}</Text>
+    </View>
+  );
+}
+
 
 const styles = StyleSheet.create({
   cardWrapper: {
     position: "absolute",
-    bottom: 90,
+    bottom: 120, // Positioned above the bottom toolbar
     left: 20,
     right: 20,
     shadowColor: "#000",
@@ -217,4 +201,4 @@ const styles = StyleSheet.create({
   reserveIcon: {
     marginLeft: 8,
   },
-})
+});

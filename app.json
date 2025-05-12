@@ -9,7 +9,7 @@
     "newArchEnabled": true,
     "plugins": ["expo-splash-screen"],
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-park.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#121212"
     },

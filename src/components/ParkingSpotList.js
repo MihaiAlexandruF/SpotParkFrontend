@@ -5,6 +5,8 @@ import { View, Text, StyleSheet, Switch, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import ScheduleModal from "./ScheduleModal"
 import { getMyParkingSpots } from "../services/parkingService"
+import { toggleParkingSpot } from "../services/parkingService"
+
 
 export default function ParkingSpotList() {
   const [spots, setSpots] = useState([])
@@ -19,10 +21,26 @@ export default function ParkingSpotList() {
     load();
   }, []);
   
-  const toggleSpot = (id) => {
-    const updatedSpots = spots.map((s) => (s.id === id ? { ...s, active: !s.active } : s))
-    setSpots(updatedSpots)
+ const toggleSpot = async (id) => {
+  console.log("📤 Trimit toggle pentru spotul cu id:", id);  // Log la trimitere
+  try {
+    const result = await toggleParkingSpot(id);
+    console.log("✅ Răspuns primit de la server:", result);  // Log la răspuns
+
+    const updatedSpots = spots.map((s) =>
+      s.id === id ? { ...s, active: result.isActive } : s
+    );
+
+    console.log("🔄 Spots actualizați local:", updatedSpots);  // Log pentru ce setezi în UI
+
+    setSpots(updatedSpots);
+  } catch (error) {
+    console.error("❌ Eroare la schimbarea statusului:", error);
+    alert("Eroare la schimbarea statusului.");
   }
+};
+
+
 
   const openScheduleSettings = (spot) => {
     setSelectedSpot(spot)

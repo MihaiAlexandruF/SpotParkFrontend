@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { getToken, removeToken } from './authStorage';
+import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
 
 const api = axios.create({
-  baseURL: 'https://b593-193-226-62-216.ngrok-free.app/api', 
+  baseURL: 'https://37ab-62-121-99-216.ngrok-free.app/api', 
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -53,5 +54,28 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      console.warn("Token expirat sau acces neautorizat, se face logout...");
+
+      
+      await SecureStore.deleteItemAsync("auth_token");
+
+      
+      Alert.alert("Sesiune expirată", "Te rugăm să te autentifici din nou.");
+
+      
+
+      
+      return Promise.reject(error);
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 
 export default api;

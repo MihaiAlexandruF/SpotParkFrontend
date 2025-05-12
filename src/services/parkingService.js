@@ -20,6 +20,18 @@ export const saveAvailability = async (parkingLotId, scheduleData) => {
   }
 }
 
+export const toggleParkingSpot = async (parkingLotId) => {
+  try {
+    const { data } = await api.put(`/parking/${parkingLotId}/toggle-active`);
+    return data;
+  } catch (error) {
+    console.error("❌ Eroare la toggle:", error);
+    throw error;
+  }
+};
+
+
+
 // Update the getMyParkingSpots function to properly handle the API response
 
 export const getMyParkingSpots = async () => {

@@ -9,6 +9,7 @@ import ParkingCard from "../components/ParkingCard"
 import BottomToolbar from "../components/BottomToolbar"
 import CustomMarker from "../components/CustomMarker"
 import { Ionicons } from "@expo/vector-icons"
+import ReservationSheet from "../components/ReservationSheet";
 
 // Custom map style for a minimalist look
 const mapStyle = [
@@ -111,62 +112,47 @@ const sampleImages = [
 ]
 
 export default function SpotParkMapScreen({ navigation }) {
-  const [spots, setSpots] = useState([])
-  const [selectedSpot, setSelectedSpot] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [userLocation, setUserLocation] = useState(null)
+  const [spots, setSpots] = useState([]);
+  const [selectedSpot, setSelectedSpot] = useState(null);
+  const [reservationSheetSpot, setReservationSheetSpot] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSpots = async () => {
       try {
-        console.log("🔄 Fetching parking spots...")
-        const data = await getParkingSpots()
-        console.log("✅ Parking spots received:", data)
-
-        // Add sample images to each spot
+        const data = await getParkingSpots();
         const spotsWithImages = data.map((spot, index) => ({
           ...spot,
           images: sampleImages[index % sampleImages.length],
-        }))
-
-        setSpots(spotsWithImages)
+        }));
+        setSpots(spotsWithImages);
       } catch (error) {
-        console.error("❌ Eroare la fetch parcuri:", error)
+        console.error("❌ Eroare la fetch parcuri:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
+    fetchSpots();
+  }, []);
 
-    fetchSpots()
-  }, [])
+  const handleReservationConfirmed = (reservationData) => {
+    console.log("Rezervare confirmată:", reservationData);
+    Alert.alert("Succes", `Ai rezervat ${reservationData.parkingLotId} cu ${reservationData.plateId} prin ${reservationData.paymentMethod}`);
+    setReservationSheetSpot(null);
+    setSelectedSpot(null);
+  };
 
-  const handleReserveSpot = () => {
-    if (selectedSpot) {
-      Alert.alert("Confirmare Rezervare", `Doriți să rezervați parcarea ${selectedSpot.name}?`, [
-        {
-          text: "Anulează",
-          style: "cancel",
-        },
-        {
-          text: "Rezervă",
-          onPress: () => {
-            Alert.alert("Succes", "Parcare rezervată cu succes!")
-            setSelectedSpot(null)
-          },
-        },
-      ])
-    }
-  }
+  const shouldShowToolbar = !selectedSpot && !reservationSheetSpot
 
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#FFFC00" />
       </View>
-    )
+    );
   }
 
-  return (
+ return (
     <View style={styles.container}>
       <MapView
         provider={PROVIDER_GOOGLE}
@@ -181,10 +167,8 @@ export default function SpotParkMapScreen({ navigation }) {
         showsUserLocation={true}
         showsMyLocationButton={false}
       >
-        {spots.map((spot) => {
-          if (typeof spot.lat !== "number" || typeof spot.lng !== "number") return null
-
-          return (
+        {spots.map((spot) =>
+          typeof spot.lat === "number" && typeof spot.lng === "number" && (
             <Marker
               key={spot.id}
               coordinate={{ latitude: spot.lat, longitude: spot.lng }}
@@ -193,7 +177,7 @@ export default function SpotParkMapScreen({ navigation }) {
               <CustomMarker price={spot.price} />
             </Marker>
           )
-        })}
+        )}
       </MapView>
 
       <SearchBar />
@@ -203,14 +187,27 @@ export default function SpotParkMapScreen({ navigation }) {
       </TouchableOpacity>
 
       {selectedSpot && (
-        <ParkingCard spot={selectedSpot} onClose={() => setSelectedSpot(null)} onReserve={handleReserveSpot} />
+        <ParkingCard
+          spot={selectedSpot}
+          onClose={() => setSelectedSpot(null)}
+          onOpenReservationSheet={(spot) => setReservationSheetSpot(spot)}
+        />
       )}
 
-      <BottomToolbar navigation={navigation} activeScreen="Map" />
+      {reservationSheetSpot && (
+        <ReservationSheet
+          spot={reservationSheetSpot}
+          onClose={() => setReservationSheetSpot(null)}
+          onReserve={handleReservationConfirmed}
+          userBalance={150}  // Sau din API
+          savedVehicles={[{ id: "1", registrationNumber: "B123ABC", isDefault: true }]}  // Sau din API
+        />
+      )}
+
+      {shouldShowToolbar && <BottomToolbar navigation={navigation} activeScreen="Map" />}
     </View>
   )
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
