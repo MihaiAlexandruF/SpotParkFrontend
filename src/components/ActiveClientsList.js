@@ -13,7 +13,7 @@ export default function ActiveClientsList() {
     const fetchActiveClients = async () => {
       try {
         const res = await api.get("/reservations/active-clients")
-        // Ensure we're handling the actual API response structure
+       
         setClients(
           Array.isArray(res.data)
             ? res.data.map((client) => ({
@@ -68,7 +68,7 @@ export default function ActiveClientsList() {
       scrollEnabled={false}
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Nu există clienți activi</Text>
+          <Text style={styles.emptyText}>Nu există clienti activi</Text>
         </View>
       }
     />

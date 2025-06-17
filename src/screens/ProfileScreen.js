@@ -19,6 +19,7 @@ import { LinearGradient } from "expo-linear-gradient"
 import BottomToolbar from "../components/BottomToolbar"
 import { useAuth } from "../auth/AuthContext"
 import api from "../services/api"
+import { fetchUserData, fetchVehicles, handleAddVehicle, handleDeleteVehicle } from '../utils/profileUtils';
 
 export default function ProfileScreen({ navigation }) {
   const { user, handleLogout } = useAuth()
@@ -30,35 +31,8 @@ export default function ProfileScreen({ navigation }) {
   const [newPlate, setNewPlate] = useState("")
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await api.get("/user/profile")
-        setUserData(response.data)
-      } catch (error) {
-        console.error("Error fetching user profile:", error)
-        setUserData(
-          user || {
-            name: "Utilizator",
-            email: "utilizator@example.com",
-            profileImage: "https://randomuser.me/api/portraits/men/32.jpg",
-          },
-        )
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    const fetchVehicles = async () => {
-      try {
-        const res = await api.get("/vehicles")
-        setVehicles(res.data)
-      } catch (error) {
-        console.error("Error fetching vehicles:", error)
-      }
-    }
-
-    fetchUserData()
-    fetchVehicles()
+    fetchUserData(setUserData, setLoading, user)
+    fetchVehicles(setVehicles)
   }, [user])
 
   const toggleNotifications = () => setNotificationsEnabled((prev) => !prev)
@@ -71,24 +45,12 @@ export default function ProfileScreen({ navigation }) {
     ])
   }
 
-  const handleAddVehicle = async () => {
-    if (!newPlate.trim()) return
-    try {
-      const res = await api.post("/vehicles", { plateNumber: newPlate.trim().toUpperCase() })
-      setVehicles([res.data, ...vehicles])
-      setNewPlate("")
-    } catch (error) {
-      console.error("Eroare la adăugare număr:", error)
-    }
+  const onAddVehicle = () => {
+    handleAddVehicle(newPlate, setVehicles, vehicles, setNewPlate)
   }
 
-  const handleDeleteVehicle = async (id) => {
-    try {
-      await api.delete(`/vehicles/${id}`)
-      setVehicles(vehicles.filter((v) => v.id !== id))
-    } catch (error) {
-      console.error("Eroare la ștergere număr:", error)
-    }
+  const onDeleteVehicle = (id) => {
+    handleDeleteVehicle(id, setVehicles, vehicles)
   }
 
   if (loading) {
@@ -120,7 +82,7 @@ export default function ProfileScreen({ navigation }) {
               onChangeText={setNewPlate}
               style={{ flex: 1, borderBottomWidth: 1, borderColor: "#ccc", paddingVertical: 6 }}
             />
-            <TouchableOpacity onPress={handleAddVehicle} style={{ marginLeft: 12 }}>
+            <TouchableOpacity onPress={onAddVehicle} style={{ marginLeft: 12 }}>
               <Ionicons name="add-circle-outline" size={24} color="#4CAF50" />
             </TouchableOpacity>
           </View>
@@ -128,7 +90,7 @@ export default function ProfileScreen({ navigation }) {
           {vehicles.map((vehicle) => (
             <View key={vehicle.id} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 6 }}>
               <Text style={{ fontSize: 14, color: "#333", fontFamily: "EuclidCircularB-Medium" }}>{vehicle.plateNumber}</Text>
-              <TouchableOpacity onPress={() => handleDeleteVehicle(vehicle.id)}>
+              <TouchableOpacity onPress={() => onDeleteVehicle(vehicle.id)}>
                 <Ionicons name="trash-outline" size={18} color="#FF5252" />
               </TouchableOpacity>
             </View>

@@ -1,20 +1,12 @@
 import React, { useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, Animated,StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Animated, StyleSheet, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import ImageCarousel from "./ImageCarousel";
+import { useAnimation } from '../utils/animationUtils';
 
 export default function ParkingCard({ spot, onClose, onOpenReservationSheet }) { 
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
-    ]).start();
-  }, []);
+  const { fadeAnim, slideAnim } = useAnimation();
 
   const handleReservePress = () => {
     onOpenReservationSheet(spot);
@@ -46,11 +38,7 @@ export default function ParkingCard({ spot, onClose, onOpenReservationSheet }) {
             </View>
           </View>
 
-          <View style={styles.features}>
-            <Feature icon="shield-checkmark-outline" label="Securizat" />
-            <Feature icon="flash-outline" label="Rapid" />
-            <Feature icon="star-outline" label="4.8" />
-          </View>
+         
 
           <TouchableOpacity
             style={styles.reserveButton}
@@ -75,11 +63,10 @@ function Feature({ icon, label }) {
   );
 }
 
-
 const styles = StyleSheet.create({
   cardWrapper: {
     position: "absolute",
-    bottom: 120, // Positioned above the bottom toolbar
+    bottom: Platform.OS === "ios" ? 120 : 80, // Adjusted for Android
     left: 20,
     right: 20,
     shadowColor: "#000",

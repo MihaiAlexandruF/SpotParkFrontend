@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   View,
   Text,
@@ -14,88 +14,67 @@ import {
   Platform,
   ScrollView,
   StatusBar,
-} from "react-native"
-import * as yup from "yup"
-import { Formik } from "formik"
-import api from "../services/api"
-import { useAuth } from '../auth/AuthContext'; 
+} from "react-native";
+import { Formik } from "formik";
+import { Ionicons } from "@expo/vector-icons";
 
-import { Ionicons } from "@expo/vector-icons"
-
-
-const loginSchema = yup.object().shape({
-  usernameOrEmail: yup.string().required("Email or username is required"),
-  password: yup.string().required("Password is required"),
-})
+import { useAuth } from "../auth/AuthContext";
+import { loginSchema } from "../utils/validationSchemas";
+import { handleLogin, handleSocialLogin } from "../utils/authUtils";
 
 export default function LoginScreen({ navigation }) {
-  const [loading, setLoading] = useState(false)
-  const { setAuthenticated } = useAuth()
-  const [secureTextEntry, setSecureTextEntry] = useState(true)
+  const [loading, setLoading] = useState(false);
+  const [secureTextEntry, setSecureTextEntry] = useState(true);
   const { login } = useAuth();
 
+  const onLogin = async (values) => {
+    await handleLogin(values, setLoading, login, Alert);
+  };
 
-  const handleLogin = async (values) => {
-    try {
-      setLoading(true)
-      console.log("Sending login request with:", values);
-
-      console.log("Trimit cerere login...");
-
-      const response = await api.post("/auth/login", {
-        usernameOrEmail: values.usernameOrEmail,
-        password: values.password,
-      })
-
-      console.log("Răspuns de la server:", response.data);
-
-      await login(response.data);
-      
-    } catch (error) {
-      console.log("EROARE LA LOGIN:", error);
-      let errorMessage = "Authentication failed";
-    
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-    
-      Alert.alert("Eroare", errorMessage);
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSocialLogin = (provider) => {
-    Alert.alert("Social Login", `${provider} login will be implemented soon`)
-  }
+  const onSocialLogin = (provider) => {
+    handleSocialLogin(provider, Alert);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoidingView}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+      >
         <ScrollView contentContainerStyle={styles.scrollView}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>SpotPark</Text>
-            <Text style={styles.tagline}>Find your perfect parking spot</Text>
+            <Text style={styles.tagline}>Găsește locul perfect de parcare</Text>
           </View>
 
           <View style={styles.formContainer}>
-            <Text style={styles.title}>Welcome back</Text>
+            <Text style={styles.title}>Bine ai revenit</Text>
 
             <Formik
               initialValues={{ usernameOrEmail: "", password: "" }}
               validationSchema={loginSchema}
-              onSubmit={handleLogin}
+              onSubmit={onLogin}
             >
-              {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+              {({
+                handleChange,
+                handleBlur,
+                handleSubmit,
+                values,
+                errors,
+                touched,
+              }) => (
                 <>
                   <View style={styles.inputContainer}>
-                    <Ionicons name="person-outline" size={20} color="#A0A0A0" style={styles.inputIcon} />
+                    <Ionicons
+                      name="person-outline"
+                      size={20}
+                      color="#A0A0A0"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
-                      placeholder="Email or username"
+                      placeholder="Email sau nume utilizator"
                       placeholderTextColor="#808080"
                       value={values.usernameOrEmail}
                       onChangeText={handleChange("usernameOrEmail")}
@@ -105,32 +84,60 @@ export default function LoginScreen({ navigation }) {
                     />
                   </View>
                   {touched.usernameOrEmail && errors.usernameOrEmail && (
-                    <Text style={styles.errorText}>{errors.usernameOrEmail}</Text>
+                    <Text style={styles.errorText}>
+                      {errors.usernameOrEmail}
+                    </Text>
                   )}
 
                   <View style={styles.inputContainer}>
-                    <Ionicons name="lock-closed-outline" size={20} color="#A0A0A0" style={styles.inputIcon} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color="#A0A0A0"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
-                      placeholder="Password"
+                      placeholder="Parolă"
                       placeholderTextColor="#808080"
                       secureTextEntry={secureTextEntry}
                       value={values.password}
                       onChangeText={handleChange("password")}
                       onBlur={handleBlur("password")}
                     />
-                    <TouchableOpacity onPress={() => setSecureTextEntry(!secureTextEntry)} style={styles.eyeIcon}>
-                      <Ionicons name={secureTextEntry ? "eye-outline" : "eye-off-outline"} size={20} color="#A0A0A0" />
+                    <TouchableOpacity
+                      onPress={() => setSecureTextEntry(!secureTextEntry)}
+                      style={styles.eyeIcon}
+                    >
+                      <Ionicons
+                        name={
+                          secureTextEntry ? "eye-outline" : "eye-off-outline"
+                        }
+                        size={20}
+                        color="#A0A0A0"
+                      />
                     </TouchableOpacity>
                   </View>
-                  {touched.password && errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                  {touched.password && errors.password && (
+                    <Text style={styles.errorText}>{errors.password}</Text>
+                  )}
 
                   <TouchableOpacity style={styles.forgotPassword}>
-                    <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+                    <Text style={styles.forgotPasswordText}>
+                      Ai uitat parola?
+                    </Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.loginButton} onPress={handleSubmit} disabled={loading}>
-                    {loading ? <ActivityIndicator color="black" /> : <Text style={styles.loginButtonText}>Log In</Text>}
+                  <TouchableOpacity
+                    style={styles.loginButton}
+                    onPress={handleSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="black" />
+                    ) : (
+                      <Text style={styles.loginButtonText}>Autentificare</Text>
+                    )}
                   </TouchableOpacity>
                 </>
               )}
@@ -138,39 +145,39 @@ export default function LoginScreen({ navigation }) {
 
             <View style={styles.dividerContainer}>
               <View style={styles.divider} />
-              <Text style={styles.dividerText}>or continue with</Text>
+              <Text style={styles.dividerText}>sau continuă cu</Text>
               <View style={styles.divider} />
             </View>
 
             <View style={styles.socialButtonsContainer}>
-              <TouchableOpacity style={styles.socialButton} onPress={() => handleSocialLogin("Google")}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => onSocialLogin("Google")}
+              >
                 <Ionicons name="logo-google" size={20} color="#E0E0E0" />
-                <Text style={styles.socialButtonText}>Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.socialButton} onPress={() => handleSocialLogin("Apple")}>
-                <Ionicons name="logo-apple" size={20} color="#E0E0E0" />
-                <Text style={styles.socialButtonText}>Apple</Text>
+                <Text style={styles.socialButtonText}>
+                  Continuă cu Google
+                </Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.signupContainer}>
-              <Text style={styles.signupText}>Don't have an account? </Text>
+              <Text style={styles.signupText}>Nu ai cont?</Text>
               <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-                <Text style={styles.signupLink}>Sign up</Text>
+                <Text style={styles.signupLink}> Creează cont</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212", // Dark background
+    backgroundColor: "#121212",
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -187,12 +194,12 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#FFFFFF", // White text for logo
+    color: "#FFFFFF",
     fontFamily: "EuclidCircularB-Bold",
   },
   tagline: {
     fontSize: 16,
-    color: "#B0B0B0", // Light gray for secondary text
+    color: "#B0B0B0",
     marginTop: 8,
     fontFamily: "EuclidCircularB-Regular",
   },
@@ -203,19 +210,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 24,
-    color: "#FFFFFF", // White text for headings
+    color: "#FFFFFF",
     fontFamily: "EuclidCircularB-Bold",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#333333", // Darker border for inputs
+    borderColor: "#333333",
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
     height: 56,
-    backgroundColor: "#1E1E1E", // Slightly lighter than background
+    backgroundColor: "#1E1E1E",
   },
   inputIcon: {
     marginRight: 12,
@@ -224,14 +231,14 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "100%",
     fontSize: 16,
-    color: "#FFFFFF", // White text for input
+    color: "#FFFFFF",
     fontFamily: "EuclidCircularB-Regular",
   },
   eyeIcon: {
     padding: 8,
   },
   errorText: {
-    color: "#FF6B6B", // Brighter red for errors on dark background
+    color: "#FF6B6B",
     fontSize: 14,
     marginTop: -8,
     marginBottom: 16,
@@ -243,12 +250,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   forgotPasswordText: {
-    color: "#4DA6FF", // Brighter blue for links
+    color: "#4DA6FF",
     fontSize: 14,
     fontFamily: "EuclidCircularB-Medium",
   },
   loginButton: {
-    backgroundColor: "#FFFC00", // Snapchat yellow
+    backgroundColor: "#FFFC00",
     borderRadius: 12,
     height: 56,
     justifyContent: "center",
@@ -261,7 +268,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   loginButtonText: {
-    color: "#000000", // Black text on yellow button
+    color: "#000000",
     fontSize: 16,
     fontWeight: "bold",
     fontFamily: "EuclidCircularB-Bold",
@@ -274,17 +281,15 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: "#333333", // Darker divider
+    backgroundColor: "#333333",
   },
   dividerText: {
     marginHorizontal: 16,
-    color: "#B0B0B0", // Light gray text
+    color: "#B0B0B0",
     fontSize: 14,
     fontFamily: "EuclidCircularB-Regular",
   },
   socialButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     marginBottom: 32,
   },
   socialButton: {
@@ -292,18 +297,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#333333", // Darker border
+    borderColor: "#333333",
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    width: "48%",
-    backgroundColor: "#252525", // Slightly lighter than background
+    backgroundColor: "#252525",
+    width: "100%",
   },
   socialButtonText: {
     marginLeft: 8,
     fontSize: 14,
     fontFamily: "EuclidCircularB-Medium",
-    color: "#E0E0E0", // Light gray text
+    color: "#E0E0E0",
   },
   signupContainer: {
     flexDirection: "row",
@@ -311,14 +316,14 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   signupText: {
-    color: "#B0B0B0", // Light gray text
+    color: "#B0B0B0",
     fontSize: 14,
     fontFamily: "EuclidCircularB-Regular",
   },
   signupLink: {
-    color: "#FFFC00", // Snapchat yellow
+    color: "#FFFC00",
     fontWeight: "bold",
     fontSize: 14,
     fontFamily: "EuclidCircularB-Bold",
   },
-})
+});

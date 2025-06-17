@@ -157,7 +157,7 @@ export default function SpotParkMapScreen({ navigation }) {
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
-        customMapStyle={mapStyle}
+        //customMapStyle={mapStyle}
         initialRegion={{
           latitude: 44.4268,
           longitude: 26.1025,
@@ -170,12 +170,17 @@ export default function SpotParkMapScreen({ navigation }) {
         {spots.map((spot) =>
           typeof spot.lat === "number" && typeof spot.lng === "number" && (
             <Marker
-              key={spot.id}
-              coordinate={{ latitude: spot.lat, longitude: spot.lng }}
-              onPress={() => setSelectedSpot(spot)}
-            >
-              <CustomMarker price={spot.price} />
-            </Marker>
+  key={spot.id}
+  coordinate={{ latitude: spot.lat, longitude: spot.lng }}
+  onPress={() => setSelectedSpot(spot)}
+  anchor={{ x: 0.5, y: 1 }}
+>
+  <CustomMarker price={spot.price} />
+</Marker>
+
+
+
+
           )
         )}
       </MapView>

@@ -1,78 +1,84 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { AuthContext } from "../auth/AuthContext";
 
-export default function PaymentSelector({ userBalance, selectedMethod, onSelectMethod, price }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const toggleExpand = () => setIsExpanded(!isExpanded);
-
-  const selectMethod = (method) => {
-    onSelectMethod(method);
-    setIsExpanded(false);
-  };
-
-  const insufficientBalance = userBalance < price;
+export default function PaymentSelector({ selectedMethod, onSelectMethod, price }) {
+  const { user } = useContext(AuthContext);
+  const balance = user?.balance || 0;
+  const isBalanceInsufficient = balance < price;
 
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Metodă de plată</Text>
 
-      {/* Selector Compact */}
-      <TouchableOpacity style={styles.selector} onPress={toggleExpand} activeOpacity={0.7}>
-        <View style={styles.selectedMethod}>
-          <View style={styles.methodIcon}>
-            <Ionicons name={selectedMethod === "balance" ? "wallet-outline" : "card-outline"} size={20} color="#000" />
-          </View>
-          <View style={styles.methodDetails}>
-            <Text style={styles.methodName}>
-              {selectedMethod === "balance" ? "Plată din balanță" : "Plată cu cardul"}
-            </Text>
-            {selectedMethod === "balance" && (
-              <Text style={[styles.methodInfo, insufficientBalance && styles.insufficientBalance]}>
-                {insufficientBalance ? "Balanță insuficientă" : `Balanță: ${userBalance} RON`}
-              </Text>
-            )}
-          </View>
+      <View style={styles.balanceContainer}>
+        <View style={styles.balanceInfo}>
+          <Ionicons name="wallet-outline" size={20} color={isBalanceInsufficient ? "#FF5252" : "#4CAF50"} />
+          <Text style={[styles.balanceLabel, isBalanceInsufficient && styles.balanceLabelInsufficient]}>
+            Balanță disponibilă:
+          </Text>
+          <Text style={[styles.balanceValue, isBalanceInsufficient && styles.balanceValueInsufficient]}>
+            {balance.toFixed(2)} RON
+          </Text>
         </View>
-        <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color="#777" />
-      </TouchableOpacity>
+        {isBalanceInsufficient && (
+          <Text style={styles.insufficientWarning}>
+            Balanță insuficientă pentru această rezervare
+          </Text>
+        )}
+      </View>
 
-      {/* Opțiuni extinse */}
-      {isExpanded && (
-        <View style={styles.expandedOptions}>
-          <TouchableOpacity
-            style={[styles.option, selectedMethod === "balance" && styles.selectedOption]}
-            onPress={() => selectMethod("balance")}
-            disabled={selectedMethod === "balance"}
-          >
-            <Ionicons name="wallet-outline" size={20} color="#000" />
-            <View style={styles.optionDetails}>
-              <Text style={styles.optionName}>Plată din balanță</Text>
-              <Text style={[styles.optionInfo, insufficientBalance && styles.insufficientBalance]}>
-                {insufficientBalance ? "Balanță insuficientă" : `Balanță: ${userBalance} RON`}
+      <View style={styles.methodsContainer}>
+        <TouchableOpacity
+          style={[styles.methodOption, selectedMethod === "balance" && styles.selectedMethod]}
+          onPress={() => onSelectMethod("balance")}
+          disabled={isBalanceInsufficient}
+        >
+          <View style={styles.methodInfo}>
+            <Ionicons
+              name="wallet-outline"
+              size={24}
+              color={selectedMethod === "balance" ? "#4CAF50" : "#000"}
+            />
+            <View style={styles.methodDetails}>
+              <Text style={[styles.methodName, selectedMethod === "balance" && styles.selectedMethodText]}>
+                Din balanță
+              </Text>
+              <Text style={[styles.methodDescription, selectedMethod === "balance" && styles.selectedMethodText]}>
+                {isBalanceInsufficient ? "Balanță insuficientă" : "Folosește balanța disponibilă"}
               </Text>
             </View>
-            {selectedMethod === "balance" && <Ionicons name="checkmark" size={20} color="#4CAF50" />}
-          </TouchableOpacity>
+          </View>
+          {selectedMethod === "balance" && <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />}
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.option, selectedMethod === "card" && styles.selectedOption]}
-            onPress={() => selectMethod("card")}
-            disabled={selectedMethod === "card"}
-          >
-            <Ionicons name="card-outline" size={20} color="#000" />
-            <View style={styles.optionDetails}>
-              <Text style={styles.optionName}>Plată cu cardul</Text>
-              <Text style={styles.optionInfo}>Visa •••• 4242</Text>
+        <TouchableOpacity
+          style={[styles.methodOption, selectedMethod === "card" && styles.selectedMethod]}
+          onPress={() => onSelectMethod("card")}
+        >
+          <View style={styles.methodInfo}>
+            <Ionicons
+              name="card-outline"
+              size={24}
+              color={selectedMethod === "card" ? "#4CAF50" : "#000"}
+            />
+            <View style={styles.methodDetails}>
+              <Text style={[styles.methodName, selectedMethod === "card" && styles.selectedMethodText]}>
+                Card bancar
+              </Text>
+              <Text style={[styles.methodDescription, selectedMethod === "card" && styles.selectedMethodText]}>
+                Plătește cu cardul
+              </Text>
             </View>
-            {selectedMethod === "card" && <Ionicons name="checkmark" size={20} color="#4CAF50" />}
-          </TouchableOpacity>
-        </View>
-      )}
+          </View>
+          {selectedMethod === "card" && <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
@@ -83,79 +89,83 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontFamily: "EuclidCircularB-Medium",
   },
-  selector: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  balanceContainer: {
     backgroundColor: "#F9F9F9",
     borderRadius: 16,
     padding: 16,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: "#EEEEEE",
   },
-  selectedMethod: {
+  balanceInfo: {
     flexDirection: "row",
     alignItems: "center",
   },
-  methodIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#EEEEEE",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  methodDetails: {
-    flex: 1,
-  },
-  methodName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#000",
-    fontFamily: "EuclidCircularB-Medium",
-  },
-  methodInfo: {
-    fontSize: 13,
-    color: "#777",
-    marginTop: 2,
+  balanceLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 8,
+    marginRight: 4,
     fontFamily: "EuclidCircularB-Regular",
   },
-  insufficientBalance: {
-    color: "#E53935",
+  balanceLabelInsufficient: {
+    color: "#FF5252",
   },
-  expandedOptions: {
+  balanceValue: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#4CAF50",
+    fontFamily: "EuclidCircularB-Medium",
+  },
+  balanceValueInsufficient: {
+    color: "#FF5252",
+  },
+  insufficientWarning: {
+    color: "#FF5252",
+    fontSize: 12,
     marginTop: 8,
+    fontFamily: "EuclidCircularB-Regular",
+  },
+  methodsContainer: {
     backgroundColor: "#F9F9F9",
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#EEEEEE",
   },
-  option: {
+  methodOption: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#EEEEEE",
   },
-  selectedOption: {
+  selectedMethod: {
     backgroundColor: "#F0F0F0",
   },
-  optionDetails: {
+  methodInfo: {
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
-    marginLeft: 12,
   },
-  optionName: {
+  methodDetails: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  methodName: {
     fontSize: 15,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#000",
+    marginBottom: 2,
     fontFamily: "EuclidCircularB-Medium",
   },
-  optionInfo: {
+  methodDescription: {
     fontSize: 13,
-    color: "#777",
-    marginTop: 2,
+    color: "#666",
     fontFamily: "EuclidCircularB-Regular",
   },
-})
+  selectedMethodText: {
+    color: "#4CAF50",
+  },
+});

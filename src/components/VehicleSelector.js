@@ -26,7 +26,7 @@ export default function VehicleSelector({ vehicles, selectedVehicle, onSelectVeh
     if (newRegistration.trim().length >= 4) {
       const newVehicle = {
         id: `vehicle-${Date.now()}`,
-        registrationNumber: newRegistration.trim().toUpperCase(),
+        plateNumber: newRegistration.trim().toUpperCase(),
       };
       onSelectVehicle(newVehicle);
       setIsAddingNew(false);
@@ -45,7 +45,7 @@ export default function VehicleSelector({ vehicles, selectedVehicle, onSelectVeh
             <Ionicons name="car-outline" size={20} color="#000" />
           </View>
           <Text style={styles.vehicleName}>
-            {selectedVehicle ? selectedVehicle.registrationNumber : "Selectează vehiculul"}
+            {selectedVehicle ? selectedVehicle.plateNumber : "Selectează vehiculul"}
           </Text>
         </View>
         <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color="#777" />
@@ -60,7 +60,7 @@ export default function VehicleSelector({ vehicles, selectedVehicle, onSelectVeh
               onPress={() => selectVehicle(vehicle)}
             >
               <Ionicons name="car-outline" size={20} color="#000" />
-              <Text style={styles.optionName}>{vehicle.registrationNumber}</Text>
+              <Text style={styles.optionName}>{vehicle.plateNumber}</Text>
               {vehicle.isDefault && (
                 <View style={styles.defaultBadge}>
                   <Text style={styles.defaultText}>Implicit</Text>
@@ -99,7 +99,6 @@ export default function VehicleSelector({ vehicles, selectedVehicle, onSelectVeh
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -197,19 +196,18 @@ const styles = StyleSheet.create({
     borderBottomColor: "#EEEEEE",
   },
   input: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#DDDDDD",
+    borderColor: "#EEEEEE",
+    borderRadius: 8,
     padding: 12,
+    marginBottom: 8,
     fontSize: 15,
-    marginBottom: 12,
     fontFamily: "EuclidCircularB-Regular",
   },
   addButton: {
     backgroundColor: "#4CAF50",
-    borderRadius: 8,
     padding: 12,
+    borderRadius: 8,
     alignItems: "center",
   },
   addButtonDisabled: {
@@ -221,4 +219,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: "EuclidCircularB-Medium",
   },
-})
+});

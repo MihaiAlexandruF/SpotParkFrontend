@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native"
+import { View, Text, StyleSheet, Platform } from "react-native";
 
 export default function CustomMarker({ price }) {
   return (
@@ -8,7 +8,7 @@ export default function CustomMarker({ price }) {
       </View>
       <View style={styles.pointer} />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -20,11 +20,17 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   text: {
     color: "#000000",
@@ -38,10 +44,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFC00",
     transform: [{ rotate: "45deg" }],
     marginTop: -5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
-})
+});

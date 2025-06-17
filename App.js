@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen';
-import * as Font from 'expo-font';
-import { AuthProvider } from './src/auth/AuthContext';
-import AppNavigator from './src/navigation/AppNavigator';
+import React, { useCallback, useEffect, useState } from "react";
+import { View, ActivityIndicator } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
+import * as Font from "expo-font";
+import { AuthProvider } from "./src/auth/AuthContext";
+import AppNavigator from "./src/navigation/AppNavigator";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,7 +36,7 @@ export default function App() {
 
   if (!appIsReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );

@@ -1,6 +1,4 @@
-"use client"
-
-import { useState } from "react"
+import { useState } from "react";
 import {
   View,
   Text,
@@ -14,78 +12,71 @@ import {
   Platform,
   ScrollView,
   StatusBar,
-} from "react-native"
-import * as yup from "yup"
-import { Formik } from "formik"
-import api from "../services/api"
-import { Ionicons } from "@expo/vector-icons"
+} from "react-native";
+import { Formik } from "formik";
+import { Ionicons } from "@expo/vector-icons";
 
-const registerSchema = yup.object().shape({
-  username: yup.string().required("Username is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref("password"), null], "Passwords must match")
-    .required("Please confirm your password"),
-})
+import { registerSchema } from "../utils/validationSchemas";
+import { handleRegister, handleSocialSignup } from "../utils/authUtils";
 
 export default function RegisterScreen({ navigation }) {
-  const [loading, setLoading] = useState(false)
-  const [secureTextEntry, setSecureTextEntry] = useState(true)
-  const [secureConfirmTextEntry, setSecureConfirmTextEntry] = useState(true)
+  const [loading, setLoading] = useState(false);
+  const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [secureConfirmTextEntry, setSecureConfirmTextEntry] = useState(true);
 
-  const handleRegister = async (values) => {
-    try {
-      setLoading(true)
-      await api.post("/auth/register", {
-        username: values.username,
-        email: values.email,
-        password: values.password,
-      })
+  const onRegister = async (values) => {
+    await handleRegister(values, setLoading, navigation, Alert);
+  };
 
-      Alert.alert("Success", "Account created successfully! You can now log in.")
-      navigation.navigate("Login")
-    } catch (error) {
-      let errorMessage = "Registration failed"
-      if (error.response) {
-        errorMessage = error.response.data || errorMessage
-      }
-      Alert.alert("Error", errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSocialSignup = (provider) => {
-    Alert.alert("Social Signup", `${provider} signup will be implemented soon`)
-  }
+  const onSocialSignup = (provider) => {
+    handleSocialSignup(provider, Alert);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoidingView}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+      >
         <ScrollView contentContainerStyle={styles.scrollView}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>SpotPark</Text>
-            <Text style={styles.tagline}>Create your account</Text>
+            <Text style={styles.tagline}>Creează-ți un cont</Text>
           </View>
 
           <View style={styles.formContainer}>
-            <Text style={styles.title}>Sign Up</Text>
+            <Text style={styles.title}>Înregistrare</Text>
 
             <Formik
-              initialValues={{ username: "", email: "", password: "", confirmPassword: "" }}
+              initialValues={{
+                username: "",
+                email: "",
+                password: "",
+                confirmPassword: "",
+              }}
               validationSchema={registerSchema}
-              onSubmit={handleRegister}
+              onSubmit={onRegister}
             >
-              {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+              {({
+                handleChange,
+                handleBlur,
+                handleSubmit,
+                values,
+                errors,
+                touched,
+              }) => (
                 <>
                   <View style={styles.inputContainer}>
-                    <Ionicons name="person-outline" size={20} color="#A0A0A0" style={styles.inputIcon} />
+                    <Ionicons
+                      name="person-outline"
+                      size={20}
+                      color="#A0A0A0"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
-                      placeholder="Username"
+                      placeholder="Nume utilizator"
                       placeholderTextColor="#808080"
                       value={values.username}
                       onChangeText={handleChange("username")}
@@ -93,10 +84,17 @@ export default function RegisterScreen({ navigation }) {
                       autoCapitalize="none"
                     />
                   </View>
-                  {touched.username && errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
+                  {touched.username && errors.username && (
+                    <Text style={styles.errorText}>{errors.username}</Text>
+                  )}
 
                   <View style={styles.inputContainer}>
-                    <Ionicons name="mail-outline" size={20} color="#A0A0A0" style={styles.inputIcon} />
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color="#A0A0A0"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="Email"
@@ -108,30 +106,53 @@ export default function RegisterScreen({ navigation }) {
                       keyboardType="email-address"
                     />
                   </View>
-                  {touched.email && errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                  {touched.email && errors.email && (
+                    <Text style={styles.errorText}>{errors.email}</Text>
+                  )}
 
                   <View style={styles.inputContainer}>
-                    <Ionicons name="lock-closed-outline" size={20} color="#A0A0A0" style={styles.inputIcon} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color="#A0A0A0"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
-                      placeholder="Password"
+                      placeholder="Parolă"
                       placeholderTextColor="#808080"
                       secureTextEntry={secureTextEntry}
                       value={values.password}
                       onChangeText={handleChange("password")}
                       onBlur={handleBlur("password")}
                     />
-                    <TouchableOpacity onPress={() => setSecureTextEntry(!secureTextEntry)} style={styles.eyeIcon}>
-                      <Ionicons name={secureTextEntry ? "eye-outline" : "eye-off-outline"} size={20} color="#A0A0A0" />
+                    <TouchableOpacity
+                      onPress={() => setSecureTextEntry(!secureTextEntry)}
+                      style={styles.eyeIcon}
+                    >
+                      <Ionicons
+                        name={
+                          secureTextEntry ? "eye-outline" : "eye-off-outline"
+                        }
+                        size={20}
+                        color="#A0A0A0"
+                      />
                     </TouchableOpacity>
                   </View>
-                  {touched.password && errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                  {touched.password && errors.password && (
+                    <Text style={styles.errorText}>{errors.password}</Text>
+                  )}
 
                   <View style={styles.inputContainer}>
-                    <Ionicons name="lock-closed-outline" size={20} color="#A0A0A0" style={styles.inputIcon} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color="#A0A0A0"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       style={styles.input}
-                      placeholder="Confirm Password"
+                      placeholder="Confirmă parola"
                       placeholderTextColor="#808080"
                       secureTextEntry={secureConfirmTextEntry}
                       value={values.confirmPassword}
@@ -139,25 +160,39 @@ export default function RegisterScreen({ navigation }) {
                       onBlur={handleBlur("confirmPassword")}
                     />
                     <TouchableOpacity
-                      onPress={() => setSecureConfirmTextEntry(!secureConfirmTextEntry)}
+                      onPress={() =>
+                        setSecureConfirmTextEntry(!secureConfirmTextEntry)
+                      }
                       style={styles.eyeIcon}
                     >
                       <Ionicons
-                        name={secureConfirmTextEntry ? "eye-outline" : "eye-off-outline"}
+                        name={
+                          secureConfirmTextEntry
+                            ? "eye-outline"
+                            : "eye-off-outline"
+                        }
                         size={20}
                         color="#A0A0A0"
                       />
                     </TouchableOpacity>
                   </View>
                   {touched.confirmPassword && errors.confirmPassword && (
-                    <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                    <Text style={styles.errorText}>
+                      {errors.confirmPassword}
+                    </Text>
                   )}
 
-                  <TouchableOpacity style={styles.registerButton} onPress={handleSubmit} disabled={loading}>
+                  <TouchableOpacity
+                    style={styles.registerButton}
+                    onPress={handleSubmit}
+                    disabled={loading}
+                  >
                     {loading ? (
                       <ActivityIndicator color="black" />
                     ) : (
-                      <Text style={styles.registerButtonText}>Create Account</Text>
+                      <Text style={styles.registerButtonText}>
+                        Creează cont
+                      </Text>
                     )}
                   </TouchableOpacity>
                 </>
@@ -166,33 +201,33 @@ export default function RegisterScreen({ navigation }) {
 
             <View style={styles.dividerContainer}>
               <View style={styles.divider} />
-              <Text style={styles.dividerText}>or sign up with</Text>
+              <Text style={styles.dividerText}>sau continuă cu</Text>
               <View style={styles.divider} />
             </View>
 
             <View style={styles.socialButtonsContainer}>
-              <TouchableOpacity style={styles.socialButton} onPress={() => handleSocialSignup("Google")}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => onSocialSignup("Google")}
+              >
                 <Ionicons name="logo-google" size={20} color="#E0E0E0" />
-                <Text style={styles.socialButtonText}>Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.socialButton} onPress={() => handleSocialSignup("Apple")}>
-                <Ionicons name="logo-apple" size={20} color="#E0E0E0" />
-                <Text style={styles.socialButtonText}>Apple</Text>
+                <Text style={styles.socialButtonText}>
+                  Continuă cu Google
+                </Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>Already have an account? </Text>
+              <Text style={styles.loginText}>Ai deja un cont? </Text>
               <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                <Text style={styles.loginLink}>Log in</Text>
+                <Text style={styles.loginLink}>Autentificare</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -315,7 +350,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    width: "48%",
+    width: "100%",
     backgroundColor: "#252525", // Slightly lighter than background
   },
   socialButtonText: {

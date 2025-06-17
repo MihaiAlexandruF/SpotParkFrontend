@@ -173,3 +173,103 @@ export const getParkingSpots = async () => {
     ]
   }
 }
+
+export const createParkingSpot = async (parkingData) => {
+  const { data } = await api.post("/parking/parking", {
+    address: parkingData.address,
+    description: parkingData.description,
+    pricePerHour: parkingData.pricePerHour,
+    latitude: parkingData.latitude,
+    longitude: parkingData.longitude,
+    availabilityType: parkingData.availability.availabilityType,
+    dailyOpenTime: parkingData.availability.dailyOpenTime,
+    dailyCloseTime: parkingData.availability.dailyCloseTime,
+    weeklySchedules: parkingData.availability.weeklySchedules
+  });
+
+  return data;
+};
+
+export const uploadParkingImage = async (parkingLotId, imageUri) => {
+  const formData = new FormData();
+  formData.append("files", {
+    uri: imageUri,
+    name: `photo_${Date.now()}.jpg`,
+    type: "image/jpeg"
+  });
+
+  const { data } = await api.post(`/parking/${parkingLotId}/images/upload`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+
+  return data;
+};
+
+const renderScheduleInfo = () => {
+  if (!scheduleData) return null;
+
+  // Acceptă și availabilityType și scheduleType
+  const type = scheduleData.scheduleType || scheduleData.availabilityType;
+
+  if (type === "always") {
+    return (
+      <View style={styles.scheduleInfo}>
+        <Text style={styles.scheduleTitle}>Program</Text>
+        <Text style={styles.scheduleText}>Non-stop</Text>
+      </View>
+    );
+  }
+
+  if (type === "normal" || type === "daily") {
+    // Acceptă dailyHours sau dailyOpenTime/dailyCloseTime
+    const start = scheduleData.dailyHours?.start || scheduleData.dailyOpenTime || "09:00";
+    const end = scheduleData.dailyHours?.end || scheduleData.dailyCloseTime || "18:00";
+    return (
+      <View style={styles.scheduleInfo}>
+        <Text style={styles.scheduleTitle}>Program zilnic</Text>
+        <Text style={styles.scheduleText}>{start} - {end}</Text>
+      </View>
+    );
+  }
+
+  if (type === "weekly") {
+    // Acceptă weeklySchedule (obiect) sau weeklySchedules (array)
+    let days = [];
+    if (Array.isArray(scheduleData.weeklySchedules)) {
+      days = scheduleData.weeklySchedules
+        .filter(d => d.active !== false) // acceptă și fără active
+        .map(d => ({
+          day: d.dayOfWeek || d.day || "",
+          start: d.openTime || d.start,
+          end: d.closeTime || d.end
+        }));
+    } else if (scheduleData.weeklySchedule) {
+      days = Object.entries(scheduleData.weeklySchedule)
+        .filter(([_, v]) => v.active)
+        .map(([day, v]) => ({
+          day,
+          start: v.start,
+          end: v.end
+        }));
+    }
+    const dayNames = {
+      monday: "Luni", tuesday: "Marți", wednesday: "Miercuri", thursday: "Joi",
+      friday: "Vineri", saturday: "Sâmbătă", sunday: "Duminică"
+    };
+    return (
+      <View style={styles.scheduleInfo}>
+        <Text style={styles.scheduleTitle}>Program săptămânal</Text>
+        {days.map(({ day, start, end }) => (
+          <Text key={day} style={styles.scheduleText}>
+            {(dayNames[day?.toLowerCase()] || day)}: {start} - {end}
+          </Text>
+        ))}
+      </View>
+    );
+  }
+
+  return null;
+};
+

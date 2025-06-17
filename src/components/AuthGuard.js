@@ -8,7 +8,7 @@ export default function AuthGuard({ children }) {
   const navigation = useNavigation();
 
   useEffect(() => {
-    // redirecționează doar după ce loading-ul s-a încheiat
+    
     if (!loading && !authenticated) {
       navigation.reset({
         index: 0,

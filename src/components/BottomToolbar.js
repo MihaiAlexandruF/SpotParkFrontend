@@ -1,9 +1,12 @@
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native"
+import { View, TouchableOpacity, Text, StyleSheet, Platform } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 export default function BottomToolbar({ navigation, activeScreen }) {
+  const insets = useSafeAreaInsets()
+
   return (
-    <View style={styles.toolbarContainer}>
+    <View style={[styles.toolbarContainer, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       <View style={styles.toolbar}>
         <TouchableOpacity style={styles.tabButton} onPress={() => navigation.navigate("Map")}>
           <Ionicons
@@ -43,9 +46,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
-    paddingBottom: 8,
     paddingHorizontal: 16,
     backgroundColor: "transparent",
+    zIndex: 1000,
   },
   toolbar: {
     flexDirection: "row",
@@ -67,6 +70,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 16,
+    minHeight: 48,
   },
   label: {
     fontSize: 10,

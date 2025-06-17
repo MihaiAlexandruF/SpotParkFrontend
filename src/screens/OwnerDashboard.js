@@ -2,22 +2,37 @@
 
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import ParkingSpotList from "../components/ParkingSpotList"
 import EarningsSummary from "../components/EarningsSummary"
 import ActiveClientsList from "../components/ActiveClientsList"
 import BottomToolbar from "../components/BottomToolbar"
+import api from "../services/api"
 
 export default function OwnerDashboard({ navigation }) {
   const [refreshing, setRefreshing] = useState(false)
-  const [periodFilter, setPeriodFilter] = useState("month") // 'day', 'week', 'month', 'year'
+  const [walletBalance, setWalletBalance] = useState(0)
+
+  const fetchWalletBalance = async () => {
+    try {
+      const response = await api.get("/wallet")
+      setWalletBalance(response.data.balance || 0)
+    } catch (error) {
+      console.error("❌ Eroare la fetch wallet:", error)
+      setWalletBalance(0)
+    }
+  }
 
   const onRefresh = useCallback(() => {
     setRefreshing(true)
-    // Wait for 1 second to simulate refresh
+    fetchWalletBalance()
     setTimeout(() => {
       setRefreshing(false)
     }, 1000)
+  }, [])
+
+  useEffect(() => {
+    fetchWalletBalance()
   }, [])
 
   return (
@@ -28,18 +43,16 @@ export default function OwnerDashboard({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#4CAF50"]} />}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Venituri</Text>
-          <View style={styles.earningsCard}>
-            <View style={styles.earningsInfo}>
-              <Text style={styles.earningsLabel}>Total Venituri</Text>
-              <EarningsSummary />
+          <Text style={styles.title}>Dashboard</Text>
+          <View style={styles.walletCard}>
+            <View style={styles.walletInfo}>
+              <Text style={styles.walletLabel}>Sold portofel</Text>
+              <Text style={styles.walletValue}>{walletBalance} RON</Text>
             </View>
-            <View style={styles.earningsPeriod}>
-              <TouchableOpacity style={styles.periodSelector}>
-                <Text style={styles.periodText}>Luna aceasta</Text>
-                <Ionicons name="chevron-down" size={16} color="#FFFC00" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.withdrawButton}>
+              <Ionicons name="cash-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.withdrawText}>Retrage</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -48,11 +61,7 @@ export default function OwnerDashboard({ navigation }) {
             <Text style={styles.sectionTitle}>Locuri de parcare</Text>
             <TouchableOpacity
               style={styles.addButton}
-              onPress={() => {
-                // This would typically navigate to a screen to add a new parking spot
-                // For now, just show an alert
-                alert("Funcționalitatea de adăugare va fi disponibilă în curând")
-              }}
+              onPress={() => navigation.navigate("AddParkingSpot")}
             >
               <Ionicons name="add" size={20} color="#FFFFFF" />
             </TouchableOpacity>
@@ -62,7 +71,7 @@ export default function OwnerDashboard({ navigation }) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Sumar venituri</Text>
-          <EarningsSummary />
+          <EarningsSummary showOnlyEarnings />
         </View>
 
         <View style={styles.section}>
@@ -85,7 +94,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80, // Reduced to accommodate smaller toolbar
+    paddingBottom: 120,
   },
   header: {
     paddingTop: 60,
@@ -100,45 +109,43 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontFamily: "EuclidCircularB-Bold",
   },
-  earningsCard: {
+  walletCard: {
     backgroundColor: "#1E1E1E",
     borderRadius: 16,
     padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
   },
-  earningsInfo: {
+  walletInfo: {
     flex: 1,
   },
-  earningsLabel: {
+  walletLabel: {
     fontSize: 14,
     color: "#CCCCCC",
     marginBottom: 8,
     fontFamily: "EuclidCircularB-Regular",
   },
-  earningsValue: {
+  walletValue: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#FFFC00",
     fontFamily: "EuclidCircularB-Bold",
   },
-  earningsPeriod: {
-    alignItems: "flex-end",
-  },
-  periodSelector: {
+  withdrawButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#333333",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginLeft: 16,
   },
-  periodText: {
-    color: "#FFFC00",
-    marginRight: 6,
-    fontSize: 12,
+  withdrawText: {
+    color: "#FFFFFF",
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: "600",
     fontFamily: "EuclidCircularB-Medium",
   },
   section: {

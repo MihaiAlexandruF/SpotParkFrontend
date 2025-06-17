@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, Switch, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import ScheduleModal from "./ScheduleModal"
-import { getMyParkingSpots } from "../services/parkingService"
+import ScheduleSelectorModal from "./parking/ScheduleSelectorModal"
+import { getMyParkingSpots, saveAvailability } from "../services/parkingService"
 import { toggleParkingSpot } from "../services/parkingService"
-
 
 export default function ParkingSpotList() {
   const [spots, setSpots] = useState([])
@@ -21,47 +20,75 @@ export default function ParkingSpotList() {
     load();
   }, []);
   
- const toggleSpot = async (id) => {
-  console.log("📤 Trimit toggle pentru spotul cu id:", id);  // Log la trimitere
-  try {
-    const result = await toggleParkingSpot(id);
-    console.log("✅ Răspuns primit de la server:", result);  // Log la răspuns
-
-    const updatedSpots = spots.map((s) =>
-      s.id === id ? { ...s, active: result.isActive } : s
-    );
-
-    console.log("🔄 Spots actualizați local:", updatedSpots);  // Log pentru ce setezi în UI
-
-    setSpots(updatedSpots);
-  } catch (error) {
-    console.error("❌ Eroare la schimbarea statusului:", error);
-    alert("Eroare la schimbarea statusului.");
-  }
-};
-
-
+  const toggleSpot = async (id) => {
+    try {
+      const result = await toggleParkingSpot(id);
+      const updatedSpots = spots.map((s) =>
+        s.id === id ? { ...s, active: result.isActive } : s
+      );
+      setSpots(updatedSpots);
+    } catch (error) {
+      console.error("❌ Eroare la schimbarea statusului:", error);
+      alert("Eroare la schimbarea statusului.");
+    }
+  };
 
   const openScheduleSettings = (spot) => {
     setSelectedSpot(spot)
     setModalVisible(true)
   }
 
-  const handleScheduleSelect = (scheduleData) => {
+  const handleScheduleSelect = async (scheduleData) => {
     if (!selectedSpot) return
 
-    setSpots(
-      spots.map((spot) =>
-        spot.id === selectedSpot.id
-          ? {
-              ...spot,
-              ...scheduleData,
+    console.log("📤 Date primite de la modal:", scheduleData)
+
+    const updatedSpot = {
+      ...selectedSpot,
+      scheduleType: scheduleData.availabilityType,
+      dailyHours: scheduleData.availabilityType === "daily" ? {
+        start: scheduleData.dailyOpenTime,
+        end: scheduleData.dailyCloseTime
+      } : selectedSpot.dailyHours,
+      weeklySchedule: scheduleData.availabilityType === "weekly" ? 
+        Object.fromEntries(
+          (scheduleData.weeklySchedules || []).map(schedule => [
+            schedule.dayOfWeek.toLowerCase(),
+            {
+              active: true,
+              start: schedule.openTime,
+              end: schedule.closeTime
             }
-          : spot,
-      ),
-    )
-    setModalVisible(false)
-    setSelectedSpot(null)
+          ])
+        ) : selectedSpot.weeklySchedule
+    }
+
+    console.log("🔄 Date transformate pentru backend:", {
+      availabilityType: scheduleData.availabilityType,
+      dailyOpenTime: scheduleData.dailyOpenTime,
+      dailyCloseTime: scheduleData.dailyCloseTime,
+      weeklySchedules: scheduleData.weeklySchedules
+    })
+
+    try {
+      await saveAvailability(selectedSpot.id, {
+        availabilityType: scheduleData.availabilityType,
+        dailyOpenTime: scheduleData.dailyOpenTime,
+        dailyCloseTime: scheduleData.dailyCloseTime,
+        weeklySchedules: scheduleData.weeklySchedules
+      })
+
+      setSpots(
+        spots.map((spot) =>
+          spot.id === selectedSpot.id ? updatedSpot : spot
+        )
+      )
+      setModalVisible(false)
+      setSelectedSpot(null)
+    } catch (error) {
+      console.error("❌ Eroare la salvarea programului:", error)
+      alert("Eroare la salvarea programului.")
+    }
   }
 
   return (
@@ -92,7 +119,7 @@ export default function ParkingSpotList() {
               <View style={styles.scheduleContainer}>
                 <Ionicons name="time-outline" size={16} color="#4CAF50" style={styles.scheduleIcon} />
                 <Text style={styles.scheduleType}>
-                  {spot.scheduleType === "normal" && "Mereu activ"}
+                  {spot.scheduleType === "always" && "Mereu activ"}
                   {spot.scheduleType === "daily" && `Zilnic: ${spot.dailyHours.start} - ${spot.dailyHours.end}`}
                   {spot.scheduleType === "weekly" && "Program săptămânal"}
                 </Text>
@@ -125,9 +152,9 @@ export default function ParkingSpotList() {
         </View>
       ))}
 
-      <ScheduleModal
+      <ScheduleSelectorModal
         visible={modalVisible}
-        spot={selectedSpot}
+        initialSchedule={selectedSpot}
         onClose={() => {
           setModalVisible(false)
           setSelectedSpot(null)
@@ -165,7 +192,6 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   switchContainer: {
-    // Ensure the switch stays within bounds
     alignItems: "flex-end",
     justifyContent: "center",
   },

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -12,11 +12,18 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import PaymentSelector from "./PaymentSelector";
 import VehicleSelector from "./VehicleSelector";
+import { AuthContext } from "../auth/AuthContext";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.5;
 
-export default function ReservationSheet({ spot, onClose, onReserve, userBalance = 0, savedVehicles = [] }) {
+export default function ReservationSheet({ spot, onClose, onReserve, userBalance = 0 }) {
+  const { user } = useContext(AuthContext);
+  const savedVehicles = user?.vehicles || [];
+
+  console.log(" user din context:", user);
+
+
   const [paymentMethod, setPaymentMethod] = useState("balance");
   const [selectedVehicle, setSelectedVehicle] = useState(savedVehicles[0] || null);
   const [isReserving, setIsReserving] = useState(false);
@@ -150,6 +157,7 @@ export default function ReservationSheet({ spot, onClose, onReserve, userBalance
     </>
   );
 }
+
 
 const styles = StyleSheet.create({
   background: {

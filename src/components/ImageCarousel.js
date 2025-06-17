@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons"
 import { BlurView } from "expo-blur"
 
 const { width } = Dimensions.get("window")
-const CARD_WIDTH = width - 40 // Accounting for horizontal padding
+const CARD_WIDTH = width - 40
 
 export default function ImageCarousel({ images }) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -14,7 +14,6 @@ export default function ImageCarousel({ images }) {
   const flatListRef = useRef(null)
   const scrollX = useRef(new Animated.Value(0)).current
 
-  // Track loading state for each image separately
   useEffect(() => {
     if (images) {
       const initialLoadingState = {}
@@ -89,7 +88,6 @@ export default function ImageCarousel({ images }) {
         scrollEventThrottle={16}
       />
 
-      {/* Navigation arrows with blur effect */}
       {images.length > 1 && (
         <>
           {currentIndex > 0 && (
@@ -118,7 +116,6 @@ export default function ImageCarousel({ images }) {
         </>
       )}
 
-      {/* Modern pagination indicator */}
       {images.length > 1 && (
         <View style={styles.paginationContainer}>
           <BlurView intensity={40} tint="dark" style={styles.paginationBlur}>

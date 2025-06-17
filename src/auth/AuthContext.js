@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
         if (token && !isTokenExpired(token)) {
           const { data } = await api.get("/auth/validate");
           setAuthenticated(true);
-          setUser(data); // User cu balance și plates direct din validate
+          setUser(data); 
         } else {
           await SecureStore.deleteItemAsync("auth_token");
           setAuthenticated(false);

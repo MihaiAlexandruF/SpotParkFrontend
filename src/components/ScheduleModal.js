@@ -62,7 +62,7 @@ export default function ScheduleModal({ visible, spot, onClose, onSave }) {
           closeTime: daySchedule.end,
         }))
     }
-
+    console.log("✅ Payload trimis către backend:", scheduleData) // 👈 Aici adaugi
     try {
       await saveAvailability(spot.id, scheduleData)
 
