@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { View, ActivityIndicator, StyleSheet, TouchableOpacity, Alert } from "react-native"
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps"
 import { getParkingSpots } from "../services/parkingService"
@@ -116,6 +116,8 @@ export default function SpotParkMapScreen({ navigation }) {
   const [selectedSpot, setSelectedSpot] = useState(null);
   const [reservationSheetSpot, setReservationSheetSpot] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchedLocation, setSearchedLocation] = useState(null);
+  const mapRef = useRef();
 
   useEffect(() => {
     const fetchSpots = async () => {
@@ -144,6 +146,19 @@ export default function SpotParkMapScreen({ navigation }) {
 
   const shouldShowToolbar = !selectedSpot && !reservationSheetSpot
 
+  const handleSearch = ({ latitude, longitude, label }) => {
+    setSearchedLocation({ latitude, longitude, label });
+    if (mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude,
+        longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      }, 800);
+    }
+    setSelectedSpot(null);
+  };
+
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -155,6 +170,7 @@ export default function SpotParkMapScreen({ navigation }) {
  return (
     <View style={styles.container}>
       <MapView
+        ref={mapRef}
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         //customMapStyle={mapStyle}
@@ -177,15 +193,21 @@ export default function SpotParkMapScreen({ navigation }) {
 >
   <CustomMarker price={spot.price} />
 </Marker>
-
-
-
-
           )
+        )}
+        {searchedLocation && (
+          <Marker
+            coordinate={{
+              latitude: searchedLocation.latitude,
+              longitude: searchedLocation.longitude,
+            }}
+            pinColor="#FFFC00"
+            title={searchedLocation.label}
+          />
         )}
       </MapView>
 
-      <SearchBar />
+      <SearchBar onSearch={handleSearch} />
 
       <TouchableOpacity style={styles.locationButton}>
         <Ionicons name="locate" size={24} color="#121212" />

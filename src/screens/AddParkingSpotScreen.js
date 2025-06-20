@@ -24,6 +24,11 @@ import LocationPicker from "../components/parking/LocationPicker"
 import SubmitButton from "../components/parking/SubmitButton"
 import ScheduleSelectorModal from "../components/parking/ScheduleSelectorModal"
 
+const handleAddressChange = (newAddress) => {
+  setAddress(newAddress);
+};
+
+
 const SchedulePreview = ({ scheduleData }) => {
   const translateDay = {
     monday: "Luni",
@@ -109,6 +114,41 @@ export default function AddParkingSpotScreen() {
   // Refs
   const mapRef = useRef(null)
   const scrollViewRef = useRef(null)
+
+  const addressToCoordsDebounce = useRef(null);
+
+  useEffect(() => {
+    if (!address || address.length < 5) return;
+  
+    if (addressToCoordsDebounce.current) clearTimeout(addressToCoordsDebounce.current);
+  
+    addressToCoordsDebounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`);
+        const data = await res.json();
+        const place = data?.features?.[0];
+  
+        if (place) {
+          const lat = place.geometry.coordinates[1];
+          const lon = place.geometry.coordinates[0];
+          const coords = { latitude: lat, longitude: lon };
+  
+          setDraggableMarkerCoords(coords);
+  
+          if (mapRef.current) {
+            mapRef.current.animateToRegion({
+              ...coords,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }, 600);
+          }
+        }
+      } catch (error) {
+        console.warn("Nu am putut converti adresa:", error);
+      }
+    }, 1500); // 1.5 secunde debounce
+  }, [address]);
+  
 
   // Request permissions on component mount
   useEffect(() => {
@@ -318,8 +358,9 @@ export default function AddParkingSpotScreen() {
           location={location}
           draggableMarkerCoords={draggableMarkerCoords}
           setDraggableMarkerCoords={setDraggableMarkerCoords}
-          address={address}
+          onAddressChange={handleAddressChange}
         />
+
 
         <SubmitButton
           loading={loading}

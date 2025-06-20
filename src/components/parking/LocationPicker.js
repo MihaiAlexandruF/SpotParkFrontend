@@ -1,32 +1,47 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
-const LocationPicker = ({ mapRef, location, draggableMarkerCoords, setDraggableMarkerCoords, address }) => {
+const LocationPicker = ({
+  mapRef,
+  location,
+  draggableMarkerCoords,
+  setDraggableMarkerCoords,
+  onAddressChange,
+}) => {
   const [mapCenter, setMapCenter] = useState(draggableMarkerCoords);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const debounceTimer = useRef(null);
 
-  useEffect(() => {
-    if (mapRef.current && draggableMarkerCoords) {
-      mapRef.current.animateToRegion({
-        latitude: draggableMarkerCoords.latitude,
-        longitude: draggableMarkerCoords.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      }, 500)
+  const fetchAddress = async (lat, lon) => {
+    setAddressLoading(true);
+    try {
+      const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}`);
+      const data = await res.json();
+      const feature = data?.features?.[0];
+      const label = feature?.properties?.label || `${feature?.properties?.name || ''}, ${feature?.properties?.city || ''}`;
+      onAddressChange?.(label);
+    } catch (e) {
+      onAddressChange?.('');
+    } finally {
+      setAddressLoading(false);
     }
-  }, [address])
+  };
 
   const onRegionChangeComplete = (region) => {
-    setMapCenter({
+    const coords = {
       latitude: region.latitude,
-      longitude: region.longitude
-    });
-    setDraggableMarkerCoords({
-      latitude: region.latitude,
-      longitude: region.longitude
-    });
+      longitude: region.longitude,
+    };
+    setMapCenter(coords);
+    setDraggableMarkerCoords(coords);
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      fetchAddress(coords.latitude, coords.longitude);
+    }, 2000);
   };
 
   const centerMapOnMarker = () => {
@@ -48,16 +63,13 @@ const LocationPicker = ({ mapRef, location, draggableMarkerCoords, setDraggableM
           provider={PROVIDER_GOOGLE}
           style={styles.map}
           initialRegion={location}
-          showsUserLocation={true}
-          showsMyLocationButton={true}
-          showsCompass={true}
-          showsScale={true}
+          showsUserLocation
+          showsMyLocationButton
+          showsCompass
+          showsScale
           onRegionChangeComplete={onRegionChangeComplete}
         >
-          <Marker
-            coordinate={mapCenter}
-            pinColor="#4CAF50"
-          />
+          <Marker coordinate={mapCenter} pinColor="#4CAF50" />
         </MapView>
 
         <View style={styles.centerMarker} />
@@ -73,6 +85,9 @@ const LocationPicker = ({ mapRef, location, draggableMarkerCoords, setDraggableM
         <Text style={styles.coordsText}>
           Lat: {mapCenter.latitude.toFixed(6)}, Lng: {mapCenter.longitude.toFixed(6)}
         </Text>
+        {addressLoading && (
+          <Text style={styles.loadingText}>Căutare adresă...</Text>
+        )}
       </View>
     </View>
   );
@@ -153,6 +168,12 @@ const styles = StyleSheet.create({
     color: '#757575',
     fontFamily: 'EuclidCircularB-Regular',
   },
+  loadingText: {
+    marginTop: 4,
+    fontSize: 11,
+    color: '#999',
+    fontFamily: 'EuclidCircularB-Regular',
+  },
 });
 
-export default LocationPicker; 
+export default LocationPicker;
