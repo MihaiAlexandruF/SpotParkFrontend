@@ -18,7 +18,7 @@ export default function EarningsSummary({ showOnlyEarnings }) {
         setEarnings(Array.isArray(perParkingRes.data) ? perParkingRes.data : []);
         setTotal(totalRes.data.total || 0);
       } catch (error) {
-        console.error("❌ Eroare la fetch earnings:", error);
+        console.error("Eroare la fetch earnings:", error);
         setEarnings([]);
         setTotal(0);
       } finally {
@@ -80,6 +80,9 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 28,
     fontWeight: "bold",
+    textShadowColor: "rgba(0, 0, 0, 0.2)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1.5,
     color: "#FFFC00",
     fontFamily: "EuclidCircularB-Bold",
   },

@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
 
 const api = axios.create({
-  baseURL: 'https://4bf0-62-121-99-216.ngrok-free.app/api', 
+  baseURL: 'http://192.168.0.126:5000/api', 
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
