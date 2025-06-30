@@ -174,6 +174,13 @@ export const getParkingSpots = async () => {
   }
 }
 
+
+export const getAvailableSpots = async () => {
+  const { data } = await api.get("/parking/map-preview");
+  return data;
+};
+
+
 export const createParkingSpot = async (parkingData) => {
   const { data } = await api.post("/parking/parking", {
     address: parkingData.address,

@@ -34,12 +34,11 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      await removeToken();
-      Alert.alert("Session Expired", "Please login again");
-      return Promise.reject(error);
-    }
+    if (error.response.status === 401) {
+  await removeToken();
+  return Promise.reject(error);
+}
+
 
     const errorMessage = error.response?.data?.Message || 
                         error.response?.data?.message || 
