@@ -11,11 +11,81 @@ export default function ParkingCard({ spot, onClose, onOpenReservationSheet }) {
   const handleReservePress = () => {
     onOpenReservationSheet(spot);
   };
+const renderScheduleInfo = () => {
+  const schedules = spot.availabilitySchedules;
+
+  if (!schedules || schedules.length === 0) {
+    return (
+      <View style={styles.scheduleInfo}>
+        <Text style={styles.scheduleTitle}>Program</Text>
+        <Text style={styles.scheduleText}>Non-stop</Text>
+      </View>
+    );
+  }
+
+  const type = schedules[0].availabilityType;
+
+  if (type === "always") {
+    return (
+      <View style={styles.scheduleInfo}>
+        <Text style={styles.scheduleTitle}>Program</Text>
+        <Text style={styles.scheduleText}>Non-stop</Text>
+      </View>
+    );
+  }
+
+  if (type === "daily") {
+    const daily = schedules[0];
+    return (
+      <View style={styles.scheduleInfo}>
+        <Text style={styles.scheduleTitle}>Program zilnic</Text>
+        <Text style={styles.scheduleText}>
+          {daily.openTime?.slice(0, 5)} - {daily.closeTime?.slice(0, 5)}
+        </Text>
+      </View>
+    );
+  }
+
+  if (type === "weekly") {
+    const dayNames = {
+      monday: "Luni", tuesday: "Marți", wednesday: "Miercuri",
+      thursday: "Joi", friday: "Vineri", saturday: "Sâmbătă", sunday: "Duminică"
+    };
+
+    const weeklyDays = schedules.filter(s => s.availabilityType === "weekly");
+
+    return (
+      <View style={styles.scheduleInfo}>
+        <Text style={styles.scheduleTitle}>Program săptămânal</Text>
+        {weeklyDays.map((s, idx) => (
+          <Text key={idx} style={styles.scheduleText}>
+            {dayNames[s.dayOfWeek?.toLowerCase()] || s.dayOfWeek}: {s.openTime?.slice(0, 5)} - {s.closeTime?.slice(0, 5)}
+          </Text>
+        ))}
+      </View>
+    );
+  }
+
+  return null;
+};
+
+
+
+  console.log("🔍 spot.images:", spot.images)
 
   return (
     <Animated.View style={[styles.cardWrapper, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
       <View style={styles.card}>
-        {spot.images && <ImageCarousel images={spot.images} />}
+        {spot.images && (
+          <ImageCarousel
+            images={spot.images
+              .map(img => typeof img === "string" ? img : img?.imageUrl)
+              .filter(Boolean)
+              .slice(0, 3)
+            }
+          />
+        )}
+
 
         <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.8}>
           <BlurView intensity={30} tint="light" style={styles.blurButton}>
@@ -38,7 +108,7 @@ export default function ParkingCard({ spot, onClose, onOpenReservationSheet }) {
             </View>
           </View>
 
-         
+         {renderScheduleInfo()} 
 
           <TouchableOpacity
             style={styles.reserveButton}
@@ -66,7 +136,7 @@ function Feature({ icon, label }) {
 const styles = StyleSheet.create({
   cardWrapper: {
     position: "absolute",
-    bottom: Platform.OS === "ios" ? 120 : 80, // Adjusted for Android
+    bottom: Platform.OS === "ios" ? 120 : 80, 
     left: 20,
     right: 20,
     shadowColor: "#000",
@@ -188,4 +258,20 @@ const styles = StyleSheet.create({
   reserveIcon: {
     marginLeft: 8,
   },
+
+  scheduleInfo: {
+  marginBottom: 20,
+},
+scheduleTitle: {
+  fontSize: 14,
+  fontWeight: "bold",
+  color: "#000",
+  fontFamily: "EuclidCircularB-Bold",
+  marginBottom: 4,
+},
+scheduleText: {
+  fontSize: 13,
+  color: "#333",
+  fontFamily: "EuclidCircularB-Regular",
+},
 });

@@ -1,9 +1,8 @@
 import api from "./api"
 
-// Update the saveAvailability function to match the backend API
 export const saveAvailability = async (parkingLotId, scheduleData) => {
   try {
-    // Transform the data to match what the backend expects
+    
     const apiData = {
       availabilityType: scheduleData.availabilityType,
       dailyOpenTime: scheduleData.dailyOpenTime,
@@ -31,8 +30,6 @@ export const toggleParkingSpot = async (parkingLotId) => {
 };
 
 
-
-// Update the getMyParkingSpots function to properly handle the API response
 
 export const getMyParkingSpots = async () => {
   try {
@@ -82,7 +79,7 @@ export const getMyParkingSpots = async () => {
   }
 };
 
-// ✅ Transformare robustă pentru orar săptămânal
+
 const transformWeeklySchedules = (weeklySchedules) => {
   const defaultSchedule = {
     monday: { active: false, start: "09:00", end: "17:00" },
@@ -110,75 +107,32 @@ const transformWeeklySchedules = (weeklySchedules) => {
 
 
 
-export const getParkingSpots = async () => {
-  try {
-    const { data } = await api.get("/parking")
-    return data.map((spot) => ({
-      id: spot.parkingLotId,
-      name: spot.description || "Parcare",
-      address: spot.address,
-      price: spot.pricePerHour,
-      lat: spot.latitude,
-      lng: spot.longitude,
-      // In a real app, these would come from the API
-      images: [
-        "https://images.unsplash.com/photo-1590674899484-d5640e854abe?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1470224114660-3f6686c562eb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      ],
-    }))
-  } catch (error) {
-    console.error("Error fetching parking spots:", error)
-    // Return some fallback data for testing
-    return [
-      {
-        id: "1",
-        name: "Parcare Centrală",
-        address: "Strada Lipscani 21, București",
-        price: 10,
-        lat: 44.4268,
-        lng: 26.1025,
-        images: [
-          "https://images.unsplash.com/photo-1590674899484-d5640e854abe?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1470224114660-3f6686c562eb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-        ],
-      },
-      {
-        id: "2",
-        name: "Parcare Universitate",
-        address: "Piața Universității, București",
-        price: 8,
-        lat: 44.435,
-        lng: 26.1025,
-        images: [
-          "https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1590674899484-d5640e854abe?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1470224114660-3f6686c562eb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-        ],
-      },
-      {
-        id: "3",
-        name: "Parcare Unirii",
-        address: "Bulevardul Unirii 15, București",
-        price: 12,
-        lat: 44.428,
-        lng: 26.11,
-        images: [
-          "https://images.unsplash.com/photo-1470224114660-3f6686c562eb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1590674899484-d5640e854abe?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-        ],
-      },
-    ]
-  }
-}
+
 
 
 export const getAvailableSpots = async () => {
   const { data } = await api.get("/parking/map-preview");
   return data;
 };
+
+
+
+export const getParkingDetailsById = async (id) => {
+  const { data } = await api.get(`/parking/${id}/details`);
+  console.log("Parcare vine cu", data);
+
+  return {
+    id: data.parkingLotId,
+    name: data.description || "Parcare",
+    address: data.address,
+    price: data.pricePerHour,
+    lat: data.latitude,
+    lng: data.longitude,
+    images: data.images?.map(img => img.imageUrl) || [],
+    availabilitySchedules: data.availabilitySchedules || [],
+  };
+};
+
 
 
 export const createParkingSpot = async (parkingData) => {
@@ -217,7 +171,7 @@ export const uploadParkingImage = async (parkingLotId, imageUri) => {
 const renderScheduleInfo = () => {
   if (!scheduleData) return null;
 
-  // Acceptă și availabilityType și scheduleType
+ 
   const type = scheduleData.scheduleType || scheduleData.availabilityType;
 
   if (type === "always") {
@@ -230,7 +184,7 @@ const renderScheduleInfo = () => {
   }
 
   if (type === "normal" || type === "daily") {
-    // Acceptă dailyHours sau dailyOpenTime/dailyCloseTime
+
     const start = scheduleData.dailyHours?.start || scheduleData.dailyOpenTime || "09:00";
     const end = scheduleData.dailyHours?.end || scheduleData.dailyCloseTime || "18:00";
     return (
@@ -242,7 +196,7 @@ const renderScheduleInfo = () => {
   }
 
   if (type === "weekly") {
-    // Acceptă weeklySchedule (obiect) sau weeklySchedules (array)
+    
     let days = [];
     if (Array.isArray(scheduleData.weeklySchedules)) {
       days = scheduleData.weeklySchedules

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import { View, ActivityIndicator, StyleSheet, TouchableOpacity, Alert } from "react-native"
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps"
-import { getAvailableSpots } from "../services/parkingService"
+import { getAvailableSpots, getParkingDetailsById } from "../services/parkingService"
 import SearchBar from "../components/SearchBar"
 import ParkingCard from "../components/ParkingCard"
 import BottomToolbar from "../components/BottomToolbar"
@@ -39,6 +39,16 @@ export default function SpotParkMapScreen({ navigation }) {
     setReservationSheetSpot(null)
     setSelectedSpot(null)
   }
+  const handleMarkerPress = async (spot) => {
+    try {
+      const details = await getParkingDetailsById(spot.parkingLotId);
+      setSelectedSpot(details);
+    } catch (error) {
+      console.warn("❌ Eroare la încărcarea detaliilor parcării:", error);
+      Alert.alert("Eroare", "Nu s-au putut încărca detaliile parcării.");
+    }
+  };
+
 
   const shouldShowToolbar = !selectedSpot && !reservationSheetSpot
 
@@ -83,11 +93,12 @@ export default function SpotParkMapScreen({ navigation }) {
             <Marker
               key={spot.parkingLotId}
               coordinate={{ latitude: spot.latitude, longitude: spot.longitude }}
-              onPress={() => setSelectedSpot(spot)}
+              onPress={() => handleMarkerPress(spot)}
               anchor={{ x: 0.5, y: 1 }}
             >
               <CustomMarker price={spot.pricePerHour} />
             </Marker>
+
           )
         )}
 
@@ -122,8 +133,8 @@ export default function SpotParkMapScreen({ navigation }) {
           spot={reservationSheetSpot}
           onClose={() => setReservationSheetSpot(null)}
           onReserve={handleReservationConfirmed}
-          userBalance={150}  // To be replaced with real balance
-          savedVehicles={[{ id: "1", registrationNumber: "B123ABC", isDefault: true }]} // To be replaced with real vehicles
+          userBalance={150}  
+          savedVehicles={[{ id: "1", registrationNumber: "B123ABC", isDefault: true }]} 
         />
       )}
 

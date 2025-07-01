@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useRef, useEffect } from "react"
 import { View, Image, StyleSheet, Dimensions, ActivityIndicator, Animated, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
@@ -9,63 +7,77 @@ const { width } = Dimensions.get("window")
 const CARD_WIDTH = width - 40
 
 export default function ImageCarousel({ images }) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [loading, setLoading] = useState({})
-  const flatListRef = useRef(null)
-  const scrollX = useRef(new Animated.Value(0)).current
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState({});
+  const flatListRef = useRef(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const [validImages, setValidImages] = useState([]);
 
   useEffect(() => {
-    if (images) {
-      const initialLoadingState = {}
-      images.forEach((_, index) => {
-        initialLoadingState[index] = true
-      })
-      setLoading(initialLoadingState)
+    if (images && images.length > 0) {
+      const filtered = images
+        .map(img => typeof img === "string" ? img : img?.imageUrl)
+        .filter(Boolean);
+
+      const initialLoadingState = {};
+      filtered.forEach((_, index) => {
+        initialLoadingState[index] = true;
+      });
+
+      setLoading(initialLoadingState);
+      setValidImages(filtered);
+    } else {
+      setValidImages([]);
     }
-  }, [images])
+  }, [images]);
 
   const handleImageLoad = (index) => {
-    setLoading((prev) => ({ ...prev, [index]: false }))
-  }
+    setLoading((prev) => ({ ...prev, [index]: false }));
+  };
 
-  const viewabilityConfig = { itemVisiblePercentThreshold: 50 }
+  const viewabilityConfig = { itemVisiblePercentThreshold: 50 };
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index)
+      setCurrentIndex(viewableItems[0].index);
     }
-  }).current
+  }).current;
 
   const goToSlide = (index) => {
-    if (flatListRef.current && index >= 0 && index < images?.length) {
-      flatListRef.current.scrollToIndex({ index, animated: true })
+    if (flatListRef.current && index >= 0 && index < validImages.length) {
+      flatListRef.current.scrollToIndex({ index, animated: true });
     }
-  }
+  };
 
   const renderItem = ({ item, index }) => (
     <View style={styles.imageContainer}>
-      <Image source={{ uri: item }} style={styles.image} onLoad={() => handleImageLoad(index)} />
+      <Image
+        source={{ uri: item }}
+        style={styles.image}
+        onLoad={() => handleImageLoad(index)}
+        onError={() => handleImageLoad(index)}
+      />
       {loading[index] && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="small" color="#FFFFFF" />
         </View>
       )}
     </View>
-  )
+  );
 
-  if (!images || images.length === 0) {
+  if (!validImages || validImages.length === 0) {
     return (
       <View style={[styles.container, styles.errorContainer]}>
         <Ionicons name="image-outline" size={32} color="#CCCCCC" />
       </View>
-    )
+    );
   }
 
   return (
     <View style={styles.container}>
       <Animated.FlatList
         ref={flatListRef}
-        data={images}
+        data={validImages}
         renderItem={renderItem}
         keyExtractor={(_, index) => index.toString()}
         horizontal
@@ -84,11 +96,14 @@ export default function ImageCarousel({ images }) {
         decelerationRate="fast"
         snapToInterval={CARD_WIDTH}
         snapToAlignment="center"
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: true }
+        )}
         scrollEventThrottle={16}
       />
 
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <>
           {currentIndex > 0 && (
             <TouchableOpacity
@@ -102,7 +117,7 @@ export default function ImageCarousel({ images }) {
             </TouchableOpacity>
           )}
 
-          {currentIndex < images.length - 1 && (
+          {currentIndex < validImages.length - 1 && (
             <TouchableOpacity
               style={[styles.navButton, styles.rightNavButton]}
               onPress={() => goToSlide(currentIndex + 1)}
@@ -116,24 +131,24 @@ export default function ImageCarousel({ images }) {
         </>
       )}
 
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <View style={styles.paginationContainer}>
           <BlurView intensity={40} tint="dark" style={styles.paginationBlur}>
             <View style={styles.pagination}>
-              {images.map((_, index) => {
-                const inputRange = [(index - 1) * CARD_WIDTH, index * CARD_WIDTH, (index + 1) * CARD_WIDTH]
+              {validImages.map((_, index) => {
+                const inputRange = [(index - 1) * CARD_WIDTH, index * CARD_WIDTH, (index + 1) * CARD_WIDTH];
 
                 const opacity = scrollX.interpolate({
                   inputRange,
                   outputRange: [0.5, 1, 0.5],
                   extrapolate: "clamp",
-                })
+                });
 
                 const scale = scrollX.interpolate({
                   inputRange,
                   outputRange: [1, 1.3, 1],
                   extrapolate: "clamp",
-                })
+                });
 
                 return (
                   <TouchableOpacity
@@ -153,14 +168,14 @@ export default function ImageCarousel({ images }) {
                       ]}
                     />
                   </TouchableOpacity>
-                )
+                );
               })}
             </View>
           </BlurView>
         </View>
       )}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -240,4 +255,4 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     marginHorizontal: 4,
   },
-})
+});
