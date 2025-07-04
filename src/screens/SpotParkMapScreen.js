@@ -1,6 +1,4 @@
-"use client"
-
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useContext } from "react"
 import { View, ActivityIndicator, StyleSheet, TouchableOpacity, Alert } from "react-native"
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps"
 import { getAvailableSpots, getParkingDetailsById } from "../services/parkingService"
@@ -9,7 +7,10 @@ import ParkingCard from "../components/ParkingCard"
 import BottomToolbar from "../components/BottomToolbar"
 import CustomMarker from "../components/CustomMarker"
 import { Ionicons } from "@expo/vector-icons"
+import { AuthContext } from "../auth/AuthContext"
 import ReservationSheet from "../components/ReservationSheet"
+import { reserveParking } from "../services/parkingService"
+
 
 export default function SpotParkMapScreen({ navigation }) {
   const [spots, setSpots] = useState([])
@@ -18,6 +19,17 @@ export default function SpotParkMapScreen({ navigation }) {
   const [loading, setLoading] = useState(true)
   const [searchedLocation, setSearchedLocation] = useState(null)
   const mapRef = useRef()
+  const { user } = useContext(AuthContext);
+
+
+  if (!user) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
 
   useEffect(() => {
     const fetchSpots = async () => {
@@ -33,12 +45,25 @@ export default function SpotParkMapScreen({ navigation }) {
     fetchSpots()
   }, [])
 
-  const handleReservationConfirmed = (reservationData) => {
-    console.log("Rezervare confirmată:", reservationData)
-    Alert.alert("Succes", `Ai rezervat ${reservationData.parkingLotId} cu ${reservationData.plateId} prin ${reservationData.paymentMethod}`)
-    setReservationSheetSpot(null)
-    setSelectedSpot(null)
-  }
+  const handleReservationConfirmed = async (reservationData) => {
+    try {
+      const reservation = await reserveParking(reservationData);
+      console.log("Trimitem spre rezervare:", reservationData);
+      Alert.alert(
+        "Rezervare reușită",
+        `Ai rezervat ${reservation.totalCost} RON pentru ${reservationData.hours} ${reservationData.hours === 1 ? "oră" : "ore"}.`
+      );
+      setReservationSheetSpot(null);
+      setSelectedSpot(null);
+    } catch (error) {
+      Alert.alert(
+        "Eroare",
+        error?.response?.data?.message || "A apărut o eroare la rezervare."
+      );
+    }
+  };
+
+
   const handleMarkerPress = async (spot) => {
     try {
       const details = await getParkingDetailsById(spot.parkingLotId);
@@ -89,17 +114,20 @@ export default function SpotParkMapScreen({ navigation }) {
         showsMyLocationButton={false}
       >
         {spots.map((spot) =>
-          typeof spot.latitude === "number" && typeof spot.longitude === "number" && (
+          typeof spot.latitude === "number" &&
+            typeof spot.longitude === "number" ? (
             <Marker
               key={spot.parkingLotId}
-              coordinate={{ latitude: spot.latitude, longitude: spot.longitude }}
+              coordinate={{
+                latitude: spot.latitude,
+                longitude: spot.longitude,
+              }}
               onPress={() => handleMarkerPress(spot)}
               anchor={{ x: 0.5, y: 1 }}
             >
               <CustomMarker price={spot.pricePerHour} />
             </Marker>
-
-          )
+          ) : null
         )}
 
         {searchedLocation && (
@@ -133,15 +161,17 @@ export default function SpotParkMapScreen({ navigation }) {
           spot={reservationSheetSpot}
           onClose={() => setReservationSheetSpot(null)}
           onReserve={handleReservationConfirmed}
-          userBalance={150}  
-          savedVehicles={[{ id: "1", registrationNumber: "B123ABC", isDefault: true }]} 
+          userBalance={user?.balance || 0}
         />
       )}
 
-      {shouldShowToolbar && <BottomToolbar navigation={navigation} activeScreen="Map" />}
+      {shouldShowToolbar && (
+        <BottomToolbar navigation={navigation} activeScreen="Map" />
+      )}
     </View>
-  )
+  );
 }
+
 
 const styles = StyleSheet.create({
   container: {

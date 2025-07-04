@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import {
   View,
+  Alert,
   Text,
   TouchableOpacity,
   Animated,
@@ -13,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import PaymentSelector from "./PaymentSelector";
 import VehicleSelector from "./VehicleSelector";
 import { AuthContext } from "../auth/AuthContext";
+import { reserveParking } from "../services/parkingService";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.5;
@@ -40,15 +42,36 @@ export default function ReservationSheet({ spot, onClose, onReserve, userBalance
     ]).start();
   }, []);
 
-  const handleReserve = () => {
-    if (!selectedVehicle) return;
-    onReserve({
-      parkingLotId: spot.id,
-      plateId: selectedVehicle.id,
-      paymentMethod,
-      hours,
-    });
+const handleReserve = async () => {
+  if (!selectedVehicle) return;
+
+  const finalHours = hours || 1; // fallback de siguranță
+
+  const payload = {
+    parkingLotId: spot.id,
+    plateId: selectedVehicle.id,
+    paymentMethod,
+    hours: finalHours,
   };
+
+  console.log("📦 Trimitem rezervare cu:", payload);
+
+  try {
+    const response = await reserveParking(payload);
+
+    console.log("✅ Rezervare reușită:", response);
+    Alert.alert("Succes", `Rezervare efectuată pentru ${finalHours} ${finalHours === 1 ? "oră" : "ore"}`);
+    onClose(); // sau onReserve(response) dacă vrei să actualizezi lista etc.
+  } catch (err) {
+    console.error("❌ Eroare rezervare:", err?.response || err);
+    Alert.alert("Eroare", err.response?.data?.message || "A apărut o eroare.");
+    swipeAnim.setValue(0); // reset swipe dacă eșuează
+  } finally {
+    setIsReserving(false);
+  }
+};
+
+
 
   const decreaseHours = () => hours > 1 && setHours(hours - 1);
   const increaseHours = () => hours < 24 && setHours(hours + 1);

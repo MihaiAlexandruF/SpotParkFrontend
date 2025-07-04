@@ -46,6 +46,7 @@ export default function ProfileScreen({ navigation }) {
   }
 
   const onAddVehicle = () => {
+     console.log("🟡 S-a apăsat Adaugă:", newPlate);
     handleAddVehicle(newPlate, setVehicles, vehicles, setNewPlate)
   }
 
@@ -70,8 +71,21 @@ export default function ProfileScreen({ navigation }) {
       </LinearGradient>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Profile Card */}
-        {/* ...restul codului tău... */}
+        <TouchableOpacity
+  style={{
+    backgroundColor: "#4CAF50",
+    padding: 14,
+    borderRadius: 10,
+    marginHorizontal: 24,
+    marginTop: 24,
+  }}
+  onPress={() => navigation.navigate("MyReservations")}
+>
+  <Text style={{ color: "white", fontWeight: "bold", fontSize: 16, textAlign: "center" }}>
+    Rezervările mele
+  </Text>
+</TouchableOpacity>
+
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Numere de înmatriculare</Text>
@@ -96,7 +110,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
           ))}
         </View>
-        {/* Logout Button */}
+
         <TouchableOpacity style={styles.logoutButton} onPress={confirmLogout}>
           <Ionicons name="log-out-outline" size={20} color="#FF5252" style={styles.logoutIcon} />
           <Text style={styles.logoutText}>Deconectare</Text>

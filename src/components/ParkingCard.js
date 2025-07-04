@@ -1,75 +1,109 @@
 import React, { useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, Animated, StyleSheet, Platform } from "react-native";
+import { View, Text, TouchableOpacity, Animated, StyleSheet, Platform, Linking, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import ImageCarousel from "./ImageCarousel";
 import { useAnimation } from '../utils/animationUtils';
 
-export default function ParkingCard({ spot, onClose, onOpenReservationSheet }) { 
+export default function ParkingCard({ spot, onClose, onOpenReservationSheet }) {
   const { fadeAnim, slideAnim } = useAnimation();
 
   const handleReservePress = () => {
     onOpenReservationSheet(spot);
   };
-const renderScheduleInfo = () => {
-  const schedules = spot.availabilitySchedules;
 
-  if (!schedules || schedules.length === 0) {
-    return (
-      <View style={styles.scheduleInfo}>
-        <Text style={styles.scheduleTitle}>Program</Text>
-        <Text style={styles.scheduleText}>Non-stop</Text>
-      </View>
-    );
-  }
+  const handleWazePress = async () => {
+    try {
+      const address = encodeURIComponent(spot.address);
+      const wazeUrl = `https://waze.com/ul?q=${address}&navigate=yes`;
+      
+      const canOpen = await Linking.canOpenURL('waze://');
+      
+      if (canOpen) {
+        await Linking.openURL(`waze://?q=${address}&navigate=yes`);
+      } else {
+        await Linking.openURL(wazeUrl);
+      }
+    } catch (error) {
+      Alert.alert('Eroare', 'Nu s-a putut deschide Waze');
+      console.error('Error opening Waze:', error);
+    }
+  };
 
-  const type = schedules[0].availabilityType;
+  const renderScheduleInfo = () => {
+    const schedules = spot.availabilitySchedules;
+    if (!schedules || schedules.length === 0) {
+      return (
+        <View style={styles.scheduleContainer}>
+          <View style={styles.scheduleInfo}>
+            <Text style={styles.scheduleTitle}>Program</Text>
+            <Text style={styles.scheduleText}>Non-stop</Text>
+          </View>
+          <TouchableOpacity style={styles.wazeButton} onPress={handleWazePress} activeOpacity={0.7}>
+            <Ionicons name="navigate" size={20} color="#00D4FF" />
+          </TouchableOpacity>
+        </View>
+      );
+    }
 
-  if (type === "always") {
-    return (
-      <View style={styles.scheduleInfo}>
-        <Text style={styles.scheduleTitle}>Program</Text>
-        <Text style={styles.scheduleText}>Non-stop</Text>
-      </View>
-    );
-  }
+    const type = schedules[0].availabilityType;
+    
+    if (type === "always") {
+      return (
+        <View style={styles.scheduleContainer}>
+          <View style={styles.scheduleInfo}>
+            <Text style={styles.scheduleTitle}>Program</Text>
+            <Text style={styles.scheduleText}>Non-stop</Text>
+          </View>
+          <TouchableOpacity style={styles.wazeButton} onPress={handleWazePress} activeOpacity={0.7}>
+            <Ionicons name="navigate" size={20} color="#00D4FF" />
+          </TouchableOpacity>
+        </View>
+      );
+    }
 
-  if (type === "daily") {
-    const daily = schedules[0];
-    return (
-      <View style={styles.scheduleInfo}>
-        <Text style={styles.scheduleTitle}>Program zilnic</Text>
-        <Text style={styles.scheduleText}>
-          {daily.openTime?.slice(0, 5)} - {daily.closeTime?.slice(0, 5)}
-        </Text>
-      </View>
-    );
-  }
+    if (type === "daily") {
+      const daily = schedules[0];
+      return (
+        <View style={styles.scheduleContainer}>
+          <View style={styles.scheduleInfo}>
+            <Text style={styles.scheduleTitle}>Program zilnic</Text>
+            <Text style={styles.scheduleText}>
+              {daily.openTime?.slice(0, 5)} - {daily.closeTime?.slice(0, 5)}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.wazeButton} onPress={handleWazePress} activeOpacity={0.7}>
+            <Ionicons name="navigate" size={20} color="#00D4FF" />
+          </TouchableOpacity>
+        </View>
+      );
+    }
 
-  if (type === "weekly") {
-    const dayNames = {
-      monday: "Luni", tuesday: "Marți", wednesday: "Miercuri",
-      thursday: "Joi", friday: "Vineri", saturday: "Sâmbătă", sunday: "Duminică"
-    };
+    if (type === "weekly") {
+      const dayNames = {
+        monday: "Luni", tuesday: "Marți", wednesday: "Miercuri",
+        thursday: "Joi", friday: "Vineri", saturday: "Sâmbătă", sunday: "Duminică"
+      };
+      const weeklyDays = schedules.filter(s => s.availabilityType === "weekly");
+      return (
+        <View style={styles.scheduleContainer}>
+          <View style={styles.scheduleInfo}>
+            <Text style={styles.scheduleTitle}>Program săptămânal</Text>
+            {weeklyDays.map((s, idx) => (
+              <Text key={idx} style={styles.scheduleText}>
+                {dayNames[s.dayOfWeek?.toLowerCase()] || s.dayOfWeek}: {s.openTime?.slice(0, 5)} - {s.closeTime?.slice(0, 5)}
+              </Text>
+            ))}
+          </View>
+          <TouchableOpacity style={styles.wazeButton} onPress={handleWazePress} activeOpacity={0.7}>
+            <Ionicons name="navigate" size={20} color="#00D4FF" />
+          </TouchableOpacity>
+        </View>
+      );
+    }
 
-    const weeklyDays = schedules.filter(s => s.availabilityType === "weekly");
-
-    return (
-      <View style={styles.scheduleInfo}>
-        <Text style={styles.scheduleTitle}>Program săptămânal</Text>
-        {weeklyDays.map((s, idx) => (
-          <Text key={idx} style={styles.scheduleText}>
-            {dayNames[s.dayOfWeek?.toLowerCase()] || s.dayOfWeek}: {s.openTime?.slice(0, 5)} - {s.closeTime?.slice(0, 5)}
-          </Text>
-        ))}
-      </View>
-    );
-  }
-
-  return null;
-};
-
-
+    return null;
+  };
 
   console.log("🔍 spot.images:", spot.images)
 
@@ -85,8 +119,6 @@ const renderScheduleInfo = () => {
             }
           />
         )}
-
-
         <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.8}>
           <BlurView intensity={30} tint="light" style={styles.blurButton}>
             <Ionicons name="close" size={20} color="#ff0000" />
@@ -95,20 +127,18 @@ const renderScheduleInfo = () => {
 
         <View style={styles.content}>
           <Text style={styles.title}>{spot.name}</Text>
-
           <View style={styles.infoContainer}>
             <View style={styles.infoItem}>
               <Ionicons name="location-outline" size={18} color="#000" style={styles.icon} />
               <Text style={styles.infoText}>{spot.address}</Text>
             </View>
-
             <View style={styles.priceTag}>
               <Text style={styles.price}>{spot.price} RON</Text>
               <Text style={styles.priceUnit}>/oră</Text>
             </View>
           </View>
 
-         {renderScheduleInfo()} 
+          {renderScheduleInfo()}
 
           <TouchableOpacity
             style={styles.reserveButton}
@@ -136,7 +166,7 @@ function Feature({ icon, label }) {
 const styles = StyleSheet.create({
   cardWrapper: {
     position: "absolute",
-    bottom: Platform.OS === "ios" ? 120 : 80, 
+    bottom: Platform.OS === "ios" ? 120 : 80,
     left: 20,
     right: 20,
     shadowColor: "#000",
@@ -258,20 +288,38 @@ const styles = StyleSheet.create({
   reserveIcon: {
     marginLeft: 8,
   },
-
+  scheduleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 20,
+  },
   scheduleInfo: {
-  marginBottom: 20,
-},
-scheduleTitle: {
-  fontSize: 14,
-  fontWeight: "bold",
-  color: "#000",
-  fontFamily: "EuclidCircularB-Bold",
-  marginBottom: 4,
-},
-scheduleText: {
-  fontSize: 13,
-  color: "#333",
-  fontFamily: "EuclidCircularB-Regular",
-},
+    flex: 1,
+  },
+  scheduleTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#000",
+    fontFamily: "EuclidCircularB-Bold",
+    marginBottom: 4,
+  },
+  scheduleText: {
+    fontSize: 13,
+    color: "#333",
+    fontFamily: "EuclidCircularB-Regular",
+  },
+  wazeButton: {
+    backgroundColor: "#F0F8FF",
+    borderRadius: 12,
+    padding: 8,
+    marginLeft: 12,
+    borderWidth: 1,
+    borderColor: "#E0F0FF",
+    shadowColor: "#00D4FF",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
 });

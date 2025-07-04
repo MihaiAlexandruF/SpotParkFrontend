@@ -29,6 +29,16 @@ export const toggleParkingSpot = async (parkingLotId) => {
   }
 };
 
+export const reserveParking = async (reservationData) => {
+  try {
+    const { data } = await api.post("/reservations/reserve", reservationData);
+    return data;
+  } catch (error) {
+    console.error("❌ Eroare rezervare API:", error.response?.data || error);
+    throw error;
+  }
+};
+
 
 
 export const getMyParkingSpots = async () => {
@@ -112,6 +122,7 @@ const transformWeeklySchedules = (weeklySchedules) => {
 
 export const getAvailableSpots = async () => {
   const { data } = await api.get("/parking/map-preview");
+  console.log("PARCARILE VENITE:  ",data);
   return data;
 };
 

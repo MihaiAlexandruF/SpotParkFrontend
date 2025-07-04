@@ -32,6 +32,7 @@ export const handleAddVehicle = async (newPlate, setVehicles, vehicles, setNewPl
   if (!newPlate.trim()) return;
   try {
     const res = await api.post("/vehicles", { plateNumber: newPlate.trim().toUpperCase() });
+    
     setVehicles([res.data, ...vehicles]);
     setNewPlate("");
   } catch (error) {
