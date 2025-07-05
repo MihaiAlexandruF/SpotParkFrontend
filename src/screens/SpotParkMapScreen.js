@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons"
 import { AuthContext } from "../auth/AuthContext"
 import ReservationSheet from "../components/ReservationSheet"
 import { reserveParking } from "../services/parkingService"
+import ReservationSuccessModal from "../components/ReservationSuccessModal"
 
 
 export default function SpotParkMapScreen({ navigation }) {
@@ -20,6 +21,9 @@ export default function SpotParkMapScreen({ navigation }) {
   const [searchedLocation, setSearchedLocation] = useState(null)
   const mapRef = useRef()
   const { user } = useContext(AuthContext);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [lastReservationInfo, setLastReservationInfo] = useState({ duration: 1, price: 0 });
+
 
 
   if (!user) {
@@ -48,11 +52,13 @@ export default function SpotParkMapScreen({ navigation }) {
   const handleReservationConfirmed = async (reservationData) => {
     try {
       const reservation = await reserveParking(reservationData);
-      console.log("Trimitem spre rezervare:", reservationData);
-      Alert.alert(
-        "Rezervare reușită",
-        `Ai rezervat ${reservation.totalCost} RON pentru ${reservationData.hours} ${reservationData.hours === 1 ? "oră" : "ore"}.`
-      );
+
+      setLastReservationInfo({
+        duration: reservationData.hours,
+        price: reservation.totalCost
+      });
+
+      setShowSuccessModal(true);
       setReservationSheetSpot(null);
       setSelectedSpot(null);
     } catch (error) {
@@ -62,6 +68,7 @@ export default function SpotParkMapScreen({ navigation }) {
       );
     }
   };
+
 
 
   const handleMarkerPress = async (spot) => {
@@ -164,6 +171,17 @@ export default function SpotParkMapScreen({ navigation }) {
           userBalance={user?.balance || 0}
         />
       )}
+
+      <ReservationSuccessModal
+        visible={showSuccessModal}
+        duration={lastReservationInfo.duration}
+        price={lastReservationInfo.price}
+        onClose={() => setShowSuccessModal(false)}
+        onViewReservations={() => {
+          setShowSuccessModal(false);
+          navigation.navigate("MyReservations");
+        }}
+      />
 
       {shouldShowToolbar && (
         <BottomToolbar navigation={navigation} activeScreen="Map" />

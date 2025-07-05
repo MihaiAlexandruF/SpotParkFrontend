@@ -42,33 +42,17 @@ export default function ReservationSheet({ spot, onClose, onReserve, userBalance
     ]).start();
   }, []);
 
-const handleReserve = async () => {
+const handleReserve = () => {
   if (!selectedVehicle) return;
-
-  const finalHours = hours || 1; // fallback de siguranță
-
+  const finalHours = hours || 1;
   const payload = {
     parkingLotId: spot.id,
     plateId: selectedVehicle.id,
     paymentMethod,
     hours: finalHours,
   };
-
-  console.log("📦 Trimitem rezervare cu:", payload);
-
-  try {
-    const response = await reserveParking(payload);
-
-    console.log("✅ Rezervare reușită:", response);
-    Alert.alert("Succes", `Rezervare efectuată pentru ${finalHours} ${finalHours === 1 ? "oră" : "ore"}`);
-    onClose(); // sau onReserve(response) dacă vrei să actualizezi lista etc.
-  } catch (err) {
-    console.error("❌ Eroare rezervare:", err?.response || err);
-    Alert.alert("Eroare", err.response?.data?.message || "A apărut o eroare.");
-    swipeAnim.setValue(0); // reset swipe dacă eșuează
-  } finally {
-    setIsReserving(false);
-  }
+  setIsReserving(true);
+  onReserve(payload);
 };
 
 
@@ -97,8 +81,7 @@ const handleReserve = async () => {
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dx > SWIPE_THRESHOLD) {
           Animated.timing(swipeAnim, { toValue: SCREEN_WIDTH, duration: 200, useNativeDriver: true }).start(() => {
-            setIsReserving(true);
-            setTimeout(handleReserve, 500);
+            handleReserve();
           });
         } else {
           Animated.spring(swipeAnim, { toValue: 0, friction: 5, useNativeDriver: true }).start();

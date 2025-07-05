@@ -37,7 +37,9 @@ export default function MyReservationsScreen() {
 
   return (
     <View style={styles.mainContainer}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.sectionTitle}>⏳ Rezervări Active</Text>
         {active.length === 0 ? (
           <Text style={styles.emptyText}>Nu ai rezervări active.</Text>
