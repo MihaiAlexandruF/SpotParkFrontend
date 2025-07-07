@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getToken, removeToken } from './authStorage';
 import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
+import { setAuthState, setUserState } from "../auth/authState";
 
 const api = axios.create({
   baseURL: 'http://192.168.0.126:5000/api', 
@@ -23,6 +24,23 @@ api.interceptors.request.use(async (config) => {
 }, error => {
   return Promise.reject(error);
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      await SecureStore.deleteItemAsync("auth_token");
+
+      setAuthState(false); // 🔥 trigger re-render
+      setUserState(null);
+
+      Alert.alert("Sesiune expirată", "Te rugăm să te autentifici din nou.");
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 
 api.interceptors.response.use(
   response => response,

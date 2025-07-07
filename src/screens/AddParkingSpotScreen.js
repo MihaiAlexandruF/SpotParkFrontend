@@ -204,7 +204,7 @@ export default function AddParkingSpotScreen() {
           await uploadParkingImage(response.parkingLotId, imageUri);
         } catch (error) {
           console.error("Error uploading image:", error);
-          // Continue with other images even if one fails
+          
         }
       }
 

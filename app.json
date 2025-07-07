@@ -2,12 +2,16 @@
   "expo": {
     "name": "SpotParkFrontend",
     "slug": "SpotParkFrontend",
+    "scheme": "spotpark",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "plugins": ["expo-splash-screen"],
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
     "splash": {
       "image": "./assets/splash-park.jpg",
       "resizeMode": "contain",
@@ -25,9 +29,6 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-secure-store"
-    ]
+    }
   }
 }

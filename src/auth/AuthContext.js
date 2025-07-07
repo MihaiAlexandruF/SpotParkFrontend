@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
+import { setAuthHandlers } from './authState';
 import api from '../services/api';
 
 
@@ -13,6 +14,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
  useEffect(() => {
+  
+  setAuthHandlers(setAuthenticated, setUser);
+
   const checkAuth = async () => {
     try {
       const token = await SecureStore.getItemAsync("auth_token");
@@ -79,11 +83,13 @@ export const AuthProvider = ({ children }) => {
     return <ActivityIndicator size="large" style={{ flex: 1 }} />;
   }
 
-  return (
-    <AuthContext.Provider value={{ authenticated, user, login, handleLogout, refreshUserData }}>
+   return (
+    <AuthContext.Provider value={{ authenticated, user, login, handleLogout, refreshUserData, setAuthenticated, setUser }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}; 
 
 export const useAuth = () => useContext(AuthContext);
+
+

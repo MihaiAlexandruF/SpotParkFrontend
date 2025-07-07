@@ -211,7 +211,7 @@ const renderScheduleInfo = () => {
     let days = [];
     if (Array.isArray(scheduleData.weeklySchedules)) {
       days = scheduleData.weeklySchedules
-        .filter(d => d.active !== false) // acceptă și fără active
+        .filter(d => d.active !== false) 
         .map(d => ({
           day: d.dayOfWeek || d.day || "",
           start: d.openTime || d.start,
