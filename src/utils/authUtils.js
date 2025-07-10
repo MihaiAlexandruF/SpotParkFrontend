@@ -25,9 +25,7 @@ export const handleLogin = async (values, setLoading, login, Alert) => {
   }
 };
 
-export const handleSocialLogin = (provider, Alert) => {
-  Alert.alert("Social Login", `${provider} login will be implemented soon`);
-};
+
 
 export const handleRegister = async (values, setLoading, navigation, Alert) => {
   try {

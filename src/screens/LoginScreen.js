@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import {
   View,
@@ -21,11 +19,39 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../auth/AuthContext";
 import { loginSchema } from "../utils/validationSchemas";
 import { handleLogin, handleSocialLogin } from "../utils/authUtils";
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import { useEffect } from 'react';
+import { makeRedirectUri } from 'expo-auth-session';
+import api from '../services/api';
+
 
 export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const { login } = useAuth();
+WebBrowser.maybeCompleteAuthSession();
+
+const [request, response, promptAsync] = Google.useAuthRequest({
+  clientId: '62046022551-mb9kemd5mfeho8m8h0b85p5o0reicgfo.apps.googleusercontent.com',
+  redirectUri: makeRedirectUri({ useProxy: true }),
+});
+
+useEffect(() => {
+  const handleGoogleLogin = async () => {
+    if (response?.type === 'success') {
+      const idToken = response.authentication.idToken;
+      try {
+        const res = await api.post('/auth/google', { idToken });
+        await login(res.data);
+      } catch (err) {
+        console.error("Google login error:", err);
+        Alert.alert("Eroare", "Login cu Google a eșuat.");
+      }
+    }
+  };
+  handleGoogleLogin();
+}, [response]);
 
   const onLogin = async (values) => {
     await handleLogin(values, setLoading, login, Alert);
@@ -152,7 +178,9 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.socialButtonsContainer}>
               <TouchableOpacity
                 style={styles.socialButton}
-                onPress={() => onSocialLogin("Google")}
+                onPress={() => promptAsync()}
+
+
               >
                 <Ionicons name="logo-google" size={20} color="#E0E0E0" />
                 <Text style={styles.socialButtonText}>

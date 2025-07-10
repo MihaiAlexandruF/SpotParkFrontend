@@ -4,7 +4,7 @@ export default function CustomMarker({ price }) {
   return (
     <View style={styles.markerContainer}>
       <View style={styles.marker}>
-        <Text style={styles.text}>{price} RON</Text>
+        <Text style={styles.text}>{price}lei</Text>
       </View>
       <View style={styles.pointer} />
     </View>
